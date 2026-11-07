@@ -17,8 +17,8 @@ export default defineConfig(() => {
           name: 'CAxis — Precision Testing & Analytics for ICAP PRC',
           short_name: 'CAxis',
           description: 'Fast, offline-ready MCQ testing, timed exam simulation, and accuracy analytics platform for ICAP PRC students.',
-          theme_color: '#047857',
-          background_color: '#f8fafc',
+          theme_color: '#09090B',
+          background_color: '#09090B',
           display: 'standalone',
           start_url: '/',
           scope: '/',
@@ -44,6 +44,9 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff,woff2}'],
           runtimeCaching: [
