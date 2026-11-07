@@ -1,0 +1,92 @@
+[
+  {
+    "id": "PRC3V1-CH01-ST-001",
+    "subjectId": "prc-3-v1",
+    "chapterId": 1,
+    "chapterName": "Nature of Business, Stakeholders & Governance",
+    "source": "self-test",
+    "questionText": "According to **Mendelow's Stakeholder Mapping Matrix**, how should management engage with a stakeholder group that possesses **High Power** over the organization but currently demonstrates **Low Interest** in its day-to-day strategies?",
+    "options": [
+      { "id": "A", "text": "Keep Satisfied — address their core concerns so they do not shift into active opposition" },
+      { "id": "B", "text": "Key Players — involve them directly in all operational governance decisions" },
+      { "id": "C", "text": "Keep Informed — provide regular newsletters and transparency reports" },
+      { "id": "D", "text": "Minimal Effort — monitor passively with minimal resource allocation" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V1-CH01-APQ-002",
+    "subjectId": "prc-3-v1",
+    "chapterId": 1,
+    "chapterName": "Nature of Business, Stakeholders & Governance",
+    "source": "apq",
+    "questionText": "Which of the following is a primary statutory distinction between a **Public Listed Company** and a **Private Limited Company** in Pakistan?",
+    "options": [
+      { "id": "A", "text": "A private limited company restricts the right to transfer its shares and prohibits invitations to the general public to subscribe for shares" },
+      { "id": "B", "text": "Shareholders of a private limited company have unlimited personal liability for corporate debts" },
+      { "id": "C", "text": "A private limited company cannot enter into contracts in its own corporate name" },
+      { "id": "D", "text": "A public listed company is exempt from appointing an external statutory auditor" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V1-CH02-ST-003",
+    "subjectId": "prc-3-v1",
+    "chapterId": 2,
+    "chapterName": "Organization Structure, Culture & Human Resources",
+    "source": "self-test",
+    "questionText": "In **Herzberg's Two-Factor Theory** of work motivation, which of the following pairs consists exclusively of **Motivator (Growth) Factors** rather than Hygiene (Maintenance) Factors?",
+    "options": [
+      { "id": "A", "text": "Sense of achievement and intrinsic responsibility for the work itself" },
+      { "id": "B", "text": "Competitive base salary and job security" },
+      { "id": "C", "text": "Safe physical working conditions and supportive company policies" },
+      { "id": "D", "text": "Quality of technical supervision and interpersonal peer relations" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V1-CH02-PS-004",
+    "subjectId": "prc-3-v1",
+    "chapterId": 2,
+    "chapterName": "Organization Structure, Culture & Human Resources",
+    "source": "practice-set",
+    "questionText": "A global engineering consultancy organizes its staff by functional specialties (Tax, Audit, Advisory) while simultaneously assigning them to temporary cross-functional industry project teams (Energy, Banking, Telecom). What organizational structure is being used, and which classic management principle does it intentionally relax?",
+    "options": [
+      { "id": "A", "text": "Matrix structure; relaxes Fayol's principle of Unity of Command (dual reporting)" },
+      { "id": "B", "text": "Divisional structure; eliminates functional specialization altogether" },
+      { "id": "C", "text": "Entrepreneurial structure; centralizes all decisions in a single founder" },
+      { "id": "D", "text": "Bureaucratic pyramid; enforces a narrow span of control of 1:1" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V1-CH03-APQ-005",
+    "subjectId": "prc-3-v1",
+    "chapterId": 3,
+    "chapterName": "Marketing, Operations & Information Systems",
+    "source": "apq",
+    "questionText": "Within the **Anthony Hierarchy of Information Systems**, which system specifically aggregates internal Transaction Processing System (TPS) data into periodic exception reports, variance summaries, and budget comparisons for **middle management**?",
+    "options": [
+      { "id": "A", "text": "Management Information System (MIS)" },
+      { "id": "B", "text": "Executive Information System (EIS)" },
+      { "id": "C", "text": "Expert Knowledge System (EKS)" },
+      { "id": "D", "text": "Operational Batch Ledger (OBL)" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V1-CH04-ST-006",
+    "subjectId": "prc-3-v1",
+    "chapterId": 4,
+    "chapterName": "Professional Ethics & Corporate Social Responsibility",
+    "source": "self-test",
+    "questionText": "A newly qualified Chartered Accountant is asked by the Finance Director to delay recording a major inventory write-down until next quarter so that the executive team qualifies for their annual profit bonus. Under the **ICAP Code of Ethics (IESBA Code)**, which two fundamental threats are simultaneously created?",
+    "options": [
+      { "id": "A", "text": "Intimidation threat and Self-interest threat" },
+      { "id": "B", "text": "Advocacy threat and Familiarity threat" },
+      { "id": "C", "text": "Self-review threat and Advocacy threat" },
+      { "id": "D", "text": "Familiarity threat and Self-review threat" }
+    ],
+    "correctOption": "A"
+  }
+]

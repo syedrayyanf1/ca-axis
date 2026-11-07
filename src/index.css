@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Outfit', sans-serif !important;
+  letter-spacing: -0.03em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rich Markdown Typography */
+.rich-markdown p {
+  margin-bottom: 0.75rem;
+  line-height: 1.65;
+}
+
+.rich-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-markdown ul,
+.rich-markdown ol {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+}
+
+.rich-markdown li {
+  margin-bottom: 0.25rem;
+}
+
+.katex-display {
+  margin: 0.85rem 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "ICAP PRC Prep",
+  "description": "Fast, offline-ready MCQ testing, timed exam simulation, and chapter/source mastery analytics platform for ICAP Chartered Accountancy (PRC Level) students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

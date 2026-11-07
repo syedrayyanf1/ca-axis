@@ -1,0 +1,137 @@
+[
+  {
+    "id": "PRC2-CH01-ST-001",
+    "subjectId": "prc-2",
+    "chapterId": 1,
+    "chapterName": "Linear Equations, Coordinate Geometry & Linear Programming",
+    "source": "self-test",
+    "questionText": "A manufacturing firm produces two products, $X$ and $Y$. The contribution margin function is given by:\n\n$$Z = 45X + 60Y$$\n\nSubject to the resource constraints:\n1. $3X + 4Y \\le 240$ (Machine hours)\n2. $2X + Y \\le 110$ (Skilled labor hours)\n3. $X \\ge 0, \\; Y \\ge 0$\n\nAt which corner point $(X, Y)$ of the feasible region is the total contribution $Z$ maximized, and what is the maximum contribution?",
+    "options": [
+      { "id": "A", "text": "(40, 30) with Z = Rs. 3,600" },
+      { "id": "B", "text": "(0, 60) with Z = Rs. 3,600" },
+      { "id": "C", "text": "Both (0, 60) and (40, 30) yield the maximum Z = Rs. 3,600" },
+      { "id": "D", "text": "(55, 0) with Z = Rs. 2,475" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC2-CH01-APQ-002",
+    "subjectId": "prc-2",
+    "chapterId": 1,
+    "chapterName": "Linear Equations, Coordinate Geometry & Linear Programming",
+    "source": "apq",
+    "questionText": "The total cost function $C(q)$ and total revenue function $R(q)$ of an electronics manufacturer for output $q$ units are:\n\n$$C(q) = 180,000 + 420q$$\n$$R(q) = 900q - 0.06q^2$$\n\nWhat is the **profit-maximizing output level** $q^*$ and the maximum profit earned?",
+    "options": [
+      { "id": "A", "text": "4,000 units; Maximum Profit = Rs. 780,000" },
+      { "id": "B", "text": "3,500 units; Maximum Profit = Rs. 720,000" },
+      { "id": "C", "text": "4,000 units; Maximum Profit = Rs. 960,000" },
+      { "id": "D", "text": "7,500 units; Maximum Profit = Rs. 645,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH02-ST-003",
+    "subjectId": "prc-2",
+    "chapterId": 2,
+    "chapterName": "Financial Mathematics: Compounding, Annuities & NPV",
+    "source": "self-test",
+    "questionText": "An investor deposits **Rs. 50,000** at the end of every quarter into a sinking fund that earns **12% per annum compounded quarterly**. Using the ordinary annuity formula:\n\n$$FV = PMT \\times \\left[ \\frac{(1 + i)^n - 1}{i} \\right]$$\n\nWhat will be the accumulated value of the fund at the end of **5 years** (rounded to the nearest rupee)?",
+    "options": [
+      { "id": "A", "text": "Rs. 1,343,519" },
+      { "id": "B", "text": "Rs. 1,383,824" },
+      { "id": "C", "text": "Rs. 1,214,868" },
+      { "id": "D", "text": "Rs. 1,420,100" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH02-APQ-004",
+    "subjectId": "prc-2",
+    "chapterId": 2,
+    "chapterName": "Financial Mathematics: Compounding, Annuities & NPV",
+    "source": "apq",
+    "questionText": "A capital project requires an initial outlay of **Rs. 2,350,000** at $t = 0$. The expected net cash inflows are summarized below:\n\n| Year ($t$) | Net Cash Inflow (Rs.) | Discount Factor at 14% | Discount Factor at 18% |\n| :--- | ---: | ---: | ---: |\n| Year 1 | 900,000 | 0.8772 | 0.8475 |\n| Year 2 | 1,100,000 | 0.7695 | 0.7182 |\n| Year 3 | 1,200,000 | 0.6750 | 0.6086 |\n\nUsing linear interpolation, what is the approximate **Internal Rate of Return (IRR)** of the project?",
+    "options": [
+      { "id": "A", "text": "16.17%" },
+      { "id": "B", "text": "15.42%" },
+      { "id": "C", "text": "17.15%" },
+      { "id": "D", "text": "14.85%" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH03-ST-005",
+    "subjectId": "prc-2",
+    "chapterId": 3,
+    "chapterName": "Measures of Central Tendency & Dispersion",
+    "source": "self-test",
+    "questionText": "For a sample of $n = 10$ observations, the mean was calculated as $\\bar{x} = 42$ and the standard deviation as $s = 6$ (using divisor $n$). Later it was discovered that one observation was wrongly recorded as **$34$** instead of the correct value **$54$**.\n\nWhat is the **corrected mean** ($\\bar{x}_{\\text{new}}$)?",
+    "options": [
+      { "id": "A", "text": "44.0" },
+      { "id": "B", "text": "40.0" },
+      { "id": "C", "text": "43.8" },
+      { "id": "D", "text": "45.2" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH03-PS-006",
+    "subjectId": "prc-2",
+    "chapterId": 3,
+    "chapterName": "Measures of Central Tendency & Dispersion",
+    "source": "practice-set",
+    "questionText": "Two investment portfolios have the following return statistics:\n\n| Portfolio | Mean Return (%) | Standard Deviation (%) |\n| :--- | ---: | ---: |\n| Portfolio Alpha | 15.0% | 3.0% |\n| Portfolio Beta | 20.0% | 5.0% |\n\nUsing the **Coefficient of Variation** ($CV = \\frac{\\sigma}{\\mu} \\times 100\\%$), which statement is true?",
+    "options": [
+      { "id": "A", "text": "Portfolio Alpha is more consistent (CV = 20%) than Portfolio Beta (CV = 25%)" },
+      { "id": "B", "text": "Portfolio Beta is more consistent (CV = 20%) than Portfolio Alpha (CV = 25%)" },
+      { "id": "C", "text": "Both portfolios have identical relative dispersion (CV = 22.5%)" },
+      { "id": "D", "text": "Portfolio Alpha has CV = 60% and Portfolio Beta has CV = 125%" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH04-APQ-007",
+    "subjectId": "prc-2",
+    "chapterId": 4,
+    "chapterName": "Correlation, Regression & Index Numbers",
+    "source": "apq",
+    "questionText": "From a dataset of $n = 8$ monthly production runs, the following summary statistics were obtained for Output ($x$, in '000 units) and Factory Overheads ($y$, in Rs. '000):\n\n$$\\sum x = 40, \\quad \\sum y = 200, \\quad \\sum xy = 1,120, \\quad \\sum x^2 = 240$$\n\nUsing the least squares formula $b = \\frac{n\\sum xy - (\\sum x)(\\sum y)}{n\\sum x^2 - (\\sum x)^2}$, what is the fitted linear regression equation $\\hat{y} = a + bx$?",
+    "options": [
+      { "id": "A", "text": "ŷ = 10 + 3x" },
+      { "id": "B", "text": "ŷ = 15 + 2.5x" },
+      { "id": "C", "text": "ŷ = 10 + 2.4x" },
+      { "id": "D", "text": "ŷ = 12 + 3x" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH05-ST-008",
+    "subjectId": "prc-2",
+    "chapterId": 5,
+    "chapterName": "Probability, Binomial, Poisson & Normal Distributions",
+    "source": "self-test",
+    "questionText": "An internal audit reveals that **$5\\%$** of vouchers processed manually contain a coding error. If an auditor selects a random sample of **$n = 4$** vouchers independently, what is the binomial probability that **at least one** voucher contains an error?\n\n$$P(X = x) = \\binom{n}{x} p^x (1 - p)^{n - x}$$",
+    "options": [
+      { "id": "A", "text": "0.1855" },
+      { "id": "B", "text": "0.8145" },
+      { "id": "C", "text": "0.1715" },
+      { "id": "D", "text": "0.2000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC2-CH05-APQ-009",
+    "subjectId": "prc-2",
+    "chapterId": 5,
+    "chapterName": "Probability, Binomial, Poisson & Normal Distributions",
+    "source": "apq",
+    "questionText": "The lifetimes of industrial LED bulbs follow a Normal distribution with mean $\\mu = 1,200\\text{ hours}$ and standard deviation $\\sigma = 80\\text{ hours}$. Given that $P(0 \\le Z \\le 1.50) = 0.4332$ and $P(0 \\le Z \\le 2.00) = 0.4772$, what percentage of bulbs last **between $1,080$ hours and $1,360$ hours**?",
+    "options": [
+      { "id": "A", "text": "91.04%" },
+      { "id": "B", "text": "86.64%" },
+      { "id": "C", "text": "95.44%" },
+      { "id": "D", "text": "4.40%" }
+    ],
+    "correctOption": "A"
+  }
+]

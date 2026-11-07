@@ -1,0 +1,92 @@
+[
+  {
+    "id": "PRC3V2-CH01-ST-001",
+    "subjectId": "prc-3-v2",
+    "chapterId": 1,
+    "chapterName": "Microeconomics: Demand, Supply & Elasticity",
+    "source": "self-test",
+    "questionText": "When the price of Good $A$ increases from **Rs. 200** to **Rs. 240**, the quantity demanded of Good $B$ decreases from **1,000 units** to **780 units**. Using the **arc (midpoint) cross-price elasticity of demand** formula:\n\n$$E_{AB} = \\frac{Q_{B2} - Q_{B1}}{Q_{B2} + Q_{B1}} \\times \\frac{P_{A2} + P_{A1}}{P_{A2} - P_{A1}}$$\n\nWhat is $E_{AB}$, and how are Goods $A$ and $B$ related?",
+    "options": [
+      { "id": "A", "text": "-1.36; Goods A and B are complements" },
+      { "id": "B", "text": "+1.36; Goods A and B are substitutes" },
+      { "id": "C", "text": "-0.73; Goods A and B are complements" },
+      { "id": "D", "text": "-1.10; Goods A and B are inferior goods" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V2-CH02-APQ-002",
+    "subjectId": "prc-3-v2",
+    "chapterId": 2,
+    "chapterName": "Cost of Production & Market Structures",
+    "source": "apq",
+    "questionText": "Which of the following conditions characterizes long-run equilibrium for a firm operating in **Monopolistic Competition** compared to **Perfect Competition**?",
+    "options": [
+      { "id": "A", "text": "Both earn normal profit (AR = AC) in the long run, but the monopolistically competitive firm operates with excess capacity where Price > Marginal Cost" },
+      { "id": "B", "text": "The monopolistically competitive firm earns permanent supernormal profits due to absolute legal barriers to entry" },
+      { "id": "C", "text": "The monopolistically competitive firm produces at the minimum point of its Long-Run Average Cost (LRAC) curve" },
+      { "id": "D", "text": "Both firms face a perfectly elastic horizontal demand curve where MR = AR = Price" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V2-CH03-ST-003",
+    "subjectId": "prc-3-v2",
+    "chapterId": 3,
+    "chapterName": "National Income Accounting & Keynesian Multiplier",
+    "source": "self-test",
+    "questionText": "Consider the following macroeconomic data for a hypothetical economy (in Rs. Billions):\n\n| National Accounts Component | Amount (Rs. Billion) |\n| :--- | ---: |\n| Household Consumption ($C$) | 4,200 |\n| Gross Private Domestic Investment ($I$) | 1,150 |\n| Government Purchases ($G$) | 1,400 |\n| Exports ($X$) | 620 |\n| Imports ($M$) | 870 |\n| Net Factor Income from Abroad ($NFIA$) | 180 |\n| Capital Consumption / Depreciation | 310 |\n| Indirect Taxes less Subsidies | 450 |\n\nWhat is the **Net National Product (NNP) at Factor Cost (National Income)**?",
+    "options": [
+      { "id": "A", "text": "Rs. 5,920 Billion" },
+      { "id": "B", "text": "Rs. 6,500 Billion" },
+      { "id": "C", "text": "Rs. 6,370 Billion" },
+      { "id": "D", "text": "Rs. 6,230 Billion" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V2-CH03-PS-004",
+    "subjectId": "prc-3-v2",
+    "chapterId": 3,
+    "chapterName": "National Income Accounting & Keynesian Multiplier",
+    "source": "practice-set",
+    "questionText": "In an open economy with government taxation, the Marginal Propensity to Consume out of disposable income is $c = 0.80$, the proportional income tax rate is $t = 0.25$, and the Marginal Propensity to Import is $m = 0.10$.\n\nUsing the open-economy multiplier formula:\n\n$$k = \\frac{1}{1 - c(1 - t) + m}$$\n\nIf autonomous government infrastructure investment increases by **Rs. 150 Billion**, by how much will equilibrium National Income ($Y$) increase?",
+    "options": [
+      { "id": "A", "text": "Rs. 300 Billion (Multiplier k = 2.0)" },
+      { "id": "B", "text": "Rs. 500 Billion (Multiplier k = 3.33)" },
+      { "id": "C", "text": "Rs. 375 Billion (Multiplier k = 2.5)" },
+      { "id": "D", "text": "Rs. 750 Billion (Multiplier k = 5.0)" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V2-CH04-APQ-005",
+    "subjectId": "prc-3-v2",
+    "chapterId": 4,
+    "chapterName": "Money, Banking, Inflation & Balance of Payments",
+    "source": "apq",
+    "questionText": "Suppose a commercial banking system receives a fresh primary cash deposit of **Rs. 25 Million**. If the central bank mandates a **Cash Reserve Ratio (CRR) of 12.5%** and there are no cash leakages outside the banking system, what is the maximum **credit creation (new derivative deposits)** generated beyond the initial deposit?",
+    "options": [
+      { "id": "A", "text": "Rs. 175 Million (Total deposits = Rs. 200 Million)" },
+      { "id": "B", "text": "Rs. 200 Million (Total deposits = Rs. 225 Million)" },
+      { "id": "C", "text": "Rs. 150 Million (Total deposits = Rs. 175 Million)" },
+      { "id": "D", "text": "Rs. 25 Million (Total deposits = Rs. 50 Million)" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC3V2-CH04-ST-006",
+    "subjectId": "prc-3-v2",
+    "chapterId": 4,
+    "chapterName": "Money, Banking, Inflation & Balance of Payments",
+    "source": "self-test",
+    "questionText": "According to the **Marshall-Lerner Condition**, under what condition will a depreciation of the domestic currency successfully improve a country's Balance of Trade deficit (assuming zero initial trade balance)?",
+    "options": [
+      { "id": "A", "text": "When the sum of the absolute price elasticities of demand for exports and imports exceeds 1 (|Ped_X| + |Ped_M| > 1)" },
+      { "id": "B", "text": "When both export demand and import demand are completely price inelastic (|Ped_X| + |Ped_M| = 0)" },
+      { "id": "C", "text": "Only during the immediate first 30 days of the J-Curve effect" },
+      { "id": "D", "text": "When domestic inflation exceeds foreign inflation by the exact depreciation rate" }
+    ],
+    "correctOption": "A"
+  }
+]

@@ -1,0 +1,152 @@
+[
+  {
+    "id": "PRC1-CH01-ST-001",
+    "subjectId": "prc-1",
+    "chapterId": 1,
+    "chapterName": "Accounting Fundamentals & Double Entry",
+    "source": "self-test",
+    "questionText": "At 1 July 2025, Tariq Traders had net assets of **Rs. 1,450,000**. During the year ended 30 June 2026, the following transactions took place:\n\n| Transaction Particulars | Amount (Rs.) |\n| :--- | ---: |\n| Additional capital introduced by owner | 320,000 |\n| Cash drawings by owner | 140,000 |\n| Goods taken by owner for personal use (Cost: Rs. 45,000; Selling price: Rs. 60,000) | 45,000 |\n| Closing Net Assets at 30 June 2026 | 1,980,000 |\n\nWhat is the net profit earned by Tariq Traders for the year ended 30 June 2026?",
+    "options": [
+      { "id": "A", "text": "Rs. 395,000" },
+      { "id": "B", "text": "Rs. 410,000" },
+      { "id": "C", "text": "Rs. 350,000" },
+      { "id": "D", "text": "Rs. 530,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH01-APQ-002",
+    "subjectId": "prc-1",
+    "chapterId": 1,
+    "chapterName": "Accounting Fundamentals & Double Entry",
+    "source": "apq",
+    "questionText": "Which of the following accounting concepts requires that non-current assets be valued at historical cost less accumulated depreciation rather than forced liquidation value?",
+    "options": [
+      { "id": "A", "text": "Accruals and matching concept" },
+      { "id": "B", "text": "Going concern assumption" },
+      { "id": "C", "text": "Prudence / conservatism principle" },
+      { "id": "D", "text": "Substance over legal form" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH02-ST-003",
+    "subjectId": "prc-1",
+    "chapterId": 2,
+    "chapterName": "Books of Prime Entry & Trial Balance",
+    "source": "self-test",
+    "questionText": "A trial balance extracted by **Mehran Enterprises** at 31 December 2025 failed to agree, and a Suspense Account was opened. Subsequent investigation revealed:\n\n| Error Ref | Error Description | Amount (Rs.) |\n| :--- | :--- | ---: |\n| 1 | Sales day book was overcast by | 18,500 |\n| 2 | Discount allowed was credited to Discount Received account | 6,200 |\n| 3 | Purchase of office furniture debited to Purchases account | 95,000 |\n\nIf the draft net profit before correcting these errors was **Rs. 640,000**, what is the revised net profit after correction (ignoring depreciation on furniture)?",
+    "options": [
+      { "id": "A", "text": "Rs. 704,100" },
+      { "id": "B", "text": "Rs. 710,300" },
+      { "id": "C", "text": "Rs. 614,100" },
+      { "id": "D", "text": "Rs. 722,700" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH02-PS-004",
+    "subjectId": "prc-1",
+    "chapterId": 2,
+    "chapterName": "Books of Prime Entry & Trial Balance",
+    "source": "practice-set",
+    "questionText": "The following incomplete **Trade Receivables Control Account (T-Account)** has been prepared by a junior bookkeeper for the month of May 2026:\n\n| Dr. Particulars | Amount (Rs.) | Cr. Particulars | Amount (Rs.) |\n| :--- | ---: | :--- | ---: |\n| Balance b/d (1 May 2026) | 480,000 | Cash & Bank receipts from credit customers | 1,120,000 |\n| Credit Sales during May | 1,350,000 | Sales Returns Inwards | 42,000 |\n| Dishonoured cheques from customers | 28,000 | Irrecoverable debts written off | 18,000 |\n| | | Contra settlement with Payables Ledger | 35,000 |\n\nWhat is the closing debit balance (**Balance c/d**) on the Trade Receivables Control Account at 31 May 2026?",
+    "options": [
+      { "id": "A", "text": "Rs. 643,000" },
+      { "id": "B", "text": "Rs. 615,000" },
+      { "id": "C", "text": "Rs. 678,000" },
+      { "id": "D", "text": "Rs. 587,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH03-APQ-005",
+    "subjectId": "prc-1",
+    "chapterId": 3,
+    "chapterName": "Bank Reconciliation Statements",
+    "source": "apq",
+    "questionText": "The Cash Book (Bank column) of **Indus Associates** shows a credit balance (overdraft) of **Rs. 84,000** at 31 March 2026. The following differences were identified upon comparison with the Bank Statement:\n\n| Item | Amount (Rs.) |\n| :--- | ---: |\n| Unpresented cheques at 31 March 2026 | 46,000 |\n| Uncredited deposits in transit | 68,000 |\n| Bank charges appearing only on Bank Statement | 3,500 |\n| Direct credit by a customer into bank account | 29,500 |\n| Dishonoured cheque from customer (not yet recorded in Cash Book) | 14,000 |\n\nWhat is the **corrected Cash Book balance** at 31 March 2026?",
+    "options": [
+      { "id": "A", "text": "Rs. 72,000 Overdraft" },
+      { "id": "B", "text": "Rs. 96,000 Overdraft" },
+      { "id": "C", "text": "Rs. 94,000 Overdraft" },
+      { "id": "D", "text": "Rs. 72,000 Favourable" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH03-ST-006",
+    "subjectId": "prc-1",
+    "chapterId": 3,
+    "chapterName": "Bank Reconciliation Statements",
+    "source": "self-test",
+    "questionText": "Continuing from an adjusted Cash Book overdraft of **Rs. 72,000**, if unpresented cheques are **Rs. 46,000** and uncredited deposits are **Rs. 68,000**, what balance was shown on the Bank Statement at 31 March 2026?",
+    "options": [
+      { "id": "A", "text": "Rs. 94,000 Overdraft (Debit on Bank Statement)" },
+      { "id": "B", "text": "Rs. 50,000 Overdraft (Debit on Bank Statement)" },
+      { "id": "C", "text": "Rs. 94,000 Favourable (Credit on Bank Statement)" },
+      { "id": "D", "text": "Rs. 50,000 Favourable (Credit on Bank Statement)" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-APQ-007",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Accruals, Prepayments & Bad Debts",
+    "source": "apq",
+    "questionText": "At 1 January 2025, **Khyber Co.** had an Allowance for Doubtful Debts of **Rs. 75,000**. At 31 December 2025, gross trade receivables stood at **Rs. 1,680,000**. It was decided to:\n1. Write off an irrecoverable balance of **Rs. 30,000**.\n2. Make a specific allowance of **100%** against a bankrupt customer owing **Rs. 50,000**.\n3. Maintain a general allowance of **4%** on the remaining trade receivables.\n\nWhat is the net charge for Irrecoverable & Doubtful Debts Expense in the Statement of Profit or Loss for 2025?",
+    "options": [
+      { "id": "A", "text": "Rs. 69,000" },
+      { "id": "B", "text": "Rs. 39,000" },
+      { "id": "C", "text": "Rs. 114,000" },
+      { "id": "D", "text": "Rs. 71,200" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-PS-008",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Accruals, Prepayments & Bad Debts",
+    "source": "practice-set",
+    "questionText": "A company pays insurance annually in advance on **1 October** each year. The annual premiums paid were:\n- **1 October 2024:** Rs. 240,000\n- **1 October 2025:** Rs. 300,000\n\nFor the financial year ended **31 December 2025**, what are the **Insurance Expense** in Profit or Loss and the **Prepaid Insurance** in the Statement of Financial Position?",
+    "options": [
+      { "id": "A", "text": "Expense: Rs. 255,000; Prepayment: Rs. 225,000" },
+      { "id": "B", "text": "Expense: Rs. 285,000; Prepayment: Rs. 225,000" },
+      { "id": "C", "text": "Expense: Rs. 255,000; Prepayment: Rs. 75,000" },
+      { "id": "D", "text": "Expense: Rs. 300,000; Prepayment: Rs. 225,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH05-ST-009",
+    "subjectId": "prc-1",
+    "chapterId": 5,
+    "chapterName": "IAS 16 Property, Plant & Equipment and IAS 2 Inventories",
+    "source": "self-test",
+    "questionText": "A manufacturing plant was acquired on **1 January 2023** for **Rs. 4,000,000** and depreciated at **20% per annum on the reducing balance method**. On **1 July 2025**, the plant was traded in for a new machine costing **Rs. 5,200,000**, with a trade-in allowance of **Rs. 2,100,000** agreed by the vendor. Depreciation is charged on a monthly pro-rata basis.\n\nWhat is the gain or loss on disposal of the old plant on 1 July 2025?",
+    "options": [
+      { "id": "A", "text": "Loss on disposal of Rs. 204,000" },
+      { "id": "B", "text": "Loss on disposal of Rs. 460,000" },
+      { "id": "C", "text": "Gain on disposal of Rs. 60,000" },
+      { "id": "D", "text": "Loss on disposal of Rs. 196,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH05-APQ-010",
+    "subjectId": "prc-1",
+    "chapterId": 5,
+    "chapterName": "IAS 16 Property, Plant & Equipment and IAS 2 Inventories",
+    "source": "apq",
+    "questionText": "At 30 June 2026, **Sialkot Sports Ltd.** holds three inventory lines. In accordance with **IAS 2 Inventories**, compute the total value at which closing inventory should be presented in the Statement of Financial Position:\n\n| Product Code | Units in Stock | Historical Cost / Unit (Rs.) | Estimated Selling Price / Unit (Rs.) | Selling & Modification Costs / Unit (Rs.) |\n| :--- | ---: | ---: | ---: | ---: |\n| Alpha-10 | 400 | 1,200 | 1,450 | 150 |\n| Beta-20 | 300 | 950 | 1,020 | 140 |\n| Gamma-30 | 200 | 1,800 | 1,900 | 250 |",
+    "options": [
+      { "id": "A", "text": "Rs. 1,074,000" },
+      { "id": "B", "text": "Rs. 1,125,000" },
+      { "id": "C", "text": "Rs. 1,095,000" },
+      { "id": "D", "text": "Rs. 1,150,000" }
+    ],
+    "correctOption": "A"
+  }
+]
