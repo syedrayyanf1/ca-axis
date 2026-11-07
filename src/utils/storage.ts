@@ -3,11 +3,13 @@ import { getAllStaticQuestions, STATIC_QUESTIONS_BY_SUBJECT } from '../data/subj
 import { supabase } from '../supabaseClient';
 
 const STORAGE_KEYS = {
-  SESSIONS: 'icap_prc_exam_sessions_v2',
-  MASTERY: 'icap_prc_question_mastery_v2',
+  SESSIONS: 'caxis_prc_exam_sessions_v3',
+  MASTERY: 'caxis_prc_question_mastery_v3',
   CUSTOM_QUESTIONS: 'icap_prc_custom_questions_v2',
   THEME: 'icap_prc_theme_v1',
-  SEEDED: 'icap_prc_seeded_v2',
+  LEGACY_SESSIONS: 'icap_prc_exam_sessions_v2',
+  LEGACY_MASTERY: 'icap_prc_question_mastery_v2',
+  LEGACY_SEEDED: 'icap_prc_seeded_v2',
 };
 
 export interface UserProgressPayload {
@@ -65,148 +67,26 @@ export function getAllQuestions(customQuestions?: Question[]): Question[] {
   return Array.from(map.values());
 }
 
-function createInitialSeedData(): {
-  sessions: ExamSessionRecord[];
-  mastery: Record<string, QuestionMasteryStat>;
-} {
-  const allQuestions = getAllStaticQuestions();
-  const mastery: Record<string, QuestionMasteryStat> = {};
-
-  const sampleSessions: ExamSessionRecord[] = [
-    {
-      id: 'sim-seed-1',
-      timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      subjectId: 'prc-1',
-      totalQuestions: 6,
-      attemptedCount: 6,
-      correctCount: 3,
-      scorePercentage: 50,
-      durationSeconds: 740,
-      timeLimitSeconds: 1200,
-      selectedChapters: [1, 2, 3],
-      selectedSources: ['self-test', 'apq'],
-      records: [
-        { questionId: 'PRC1-CH01-ST-001', subjectId: 'prc-1', chapterId: 1, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 110 },
-        { questionId: 'PRC1-CH01-APQ-002', subjectId: 'prc-1', chapterId: 1, source: 'apq', selectedOption: 'B', correctOption: 'B', isCorrect: true, flagged: false, timeSpentSeconds: 95 },
-        { questionId: 'PRC1-CH02-ST-003', subjectId: 'prc-1', chapterId: 2, source: 'self-test', selectedOption: 'B', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 160 },
-        { questionId: 'PRC1-CH02-PS-004', subjectId: 'prc-1', chapterId: 2, source: 'practice-set', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 105 },
-        { questionId: 'PRC1-CH03-APQ-005', subjectId: 'prc-1', chapterId: 3, source: 'apq', selectedOption: 'C', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 145 },
-        { questionId: 'PRC1-CH03-ST-006', subjectId: 'prc-1', chapterId: 3, source: 'self-test', selectedOption: 'B', correctOption: 'A', isCorrect: false, flagged: false, timeSpentSeconds: 125 },
-      ],
-    },
-    {
-      id: 'sim-seed-2',
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      subjectId: 'prc-2',
-      totalQuestions: 6,
-      attemptedCount: 6,
-      correctCount: 4,
-      scorePercentage: 67,
-      durationSeconds: 820,
-      timeLimitSeconds: 1200,
-      selectedChapters: [1, 2, 3, 4],
-      selectedSources: ['self-test', 'apq', 'practice-set'],
-      records: [
-        { questionId: 'PRC2-CH01-ST-001', subjectId: 'prc-2', chapterId: 1, source: 'self-test', selectedOption: 'C', correctOption: 'C', isCorrect: true, flagged: false, timeSpentSeconds: 130 },
-        { questionId: 'PRC2-CH01-APQ-002', subjectId: 'prc-2', chapterId: 1, source: 'apq', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 140 },
-        { questionId: 'PRC2-CH02-ST-003', subjectId: 'prc-2', chapterId: 2, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 120 },
-        { questionId: 'PRC2-CH02-APQ-004', subjectId: 'prc-2', chapterId: 2, source: 'apq', selectedOption: 'B', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 175 },
-        { questionId: 'PRC2-CH03-ST-005', subjectId: 'prc-2', chapterId: 3, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 115 },
-        { questionId: 'PRC2-CH04-APQ-007', subjectId: 'prc-2', chapterId: 4, source: 'apq', selectedOption: 'C', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 140 },
-      ],
-    },
-    {
-      id: 'sim-seed-3',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      subjectId: 'prc-1',
-      totalQuestions: 8,
-      attemptedCount: 8,
-      correctCount: 6,
-      scorePercentage: 75,
-      durationSeconds: 910,
-      timeLimitSeconds: 1500,
-      selectedChapters: [1, 2, 3, 4, 5],
-      selectedSources: ['self-test', 'apq', 'practice-set'],
-      records: [
-        { questionId: 'PRC1-CH01-ST-001', subjectId: 'prc-1', chapterId: 1, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 100 },
-        { questionId: 'PRC1-CH02-ST-003', subjectId: 'prc-1', chapterId: 2, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 120 },
-        { questionId: 'PRC1-CH03-APQ-005', subjectId: 'prc-1', chapterId: 3, source: 'apq', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 115 },
-        { questionId: 'PRC1-CH03-ST-006', subjectId: 'prc-1', chapterId: 3, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 110 },
-        { questionId: 'PRC1-CH04-APQ-007', subjectId: 'prc-1', chapterId: 4, source: 'apq', selectedOption: 'B', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 135 },
-        { questionId: 'PRC1-CH04-PS-008', subjectId: 'prc-1', chapterId: 4, source: 'practice-set', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 105 },
-        { questionId: 'PRC1-CH05-ST-009', subjectId: 'prc-1', chapterId: 5, source: 'self-test', selectedOption: 'B', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 120 },
-        { questionId: 'PRC1-CH05-APQ-010', subjectId: 'prc-1', chapterId: 5, source: 'apq', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 105 },
-      ],
-    },
-    {
-      id: 'sim-seed-4',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      subjectId: 'prc-3-v1',
-      totalQuestions: 5,
-      attemptedCount: 5,
-      correctCount: 4,
-      scorePercentage: 80,
-      durationSeconds: 420,
-      timeLimitSeconds: 900,
-      selectedChapters: [1, 2, 3, 4],
-      selectedSources: ['self-test', 'apq', 'practice-set'],
-      records: [
-        { questionId: 'PRC3V1-CH01-ST-001', subjectId: 'prc-3-v1', chapterId: 1, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 80 },
-        { questionId: 'PRC3V1-CH01-APQ-002', subjectId: 'prc-3-v1', chapterId: 1, source: 'apq', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 85 },
-        { questionId: 'PRC3V1-CH02-ST-003', subjectId: 'prc-3-v1', chapterId: 2, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 75 },
-        { questionId: 'PRC3V1-CH03-APQ-005', subjectId: 'prc-3-v1', chapterId: 3, source: 'apq', selectedOption: 'B', correctOption: 'A', isCorrect: false, flagged: true, timeSpentSeconds: 95 },
-        { questionId: 'PRC3V1-CH04-ST-006', subjectId: 'prc-3-v1', chapterId: 4, source: 'self-test', selectedOption: 'A', correctOption: 'A', isCorrect: true, flagged: false, timeSpentSeconds: 85 },
-      ],
-    },
-  ];
-
-  for (const session of sampleSessions) {
-    for (const rec of session.records) {
-      const qExists = allQuestions.some((q) => q.id === rec.questionId);
-      if (!qExists) continue;
-      const prev = mastery[rec.questionId];
-      if (!prev) {
-        mastery[rec.questionId] = {
-          questionId: rec.questionId,
-          subjectId: rec.subjectId,
-          chapterId: rec.chapterId,
-          source: rec.source,
-          attempts: 1,
-          correct: rec.isCorrect ? 1 : 0,
-          lastAttemptedAt: session.timestamp,
-          lastOutcomeCorrect: rec.isCorrect,
-        };
-      } else {
-        prev.attempts += 1;
-        if (rec.isCorrect) prev.correct += 1;
-        prev.lastAttemptedAt = session.timestamp;
-        prev.lastOutcomeCorrect = rec.isCorrect;
-      }
-    }
-  }
-
-  return { sessions: sampleSessions, mastery };
-}
-
 export function initializeStorageWithSeed(): {
   sessions: ExamSessionRecord[];
   mastery: Record<string, QuestionMasteryStat>;
 } {
   try {
-    const alreadySeeded = localStorage.getItem(STORAGE_KEYS.SEEDED);
+    // Clean up legacy fake seeded keys if present
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_SESSIONS);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_MASTERY);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_SEEDED);
+
     const rawSessions = localStorage.getItem(STORAGE_KEYS.SESSIONS);
     const rawMastery = localStorage.getItem(STORAGE_KEYS.MASTERY);
 
-    if (!alreadySeeded && !rawSessions && !rawMastery) {
-      const seed = createInitialSeedData();
-      localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(seed.sessions));
-      localStorage.setItem(STORAGE_KEYS.MASTERY, JSON.stringify(seed.mastery));
-      localStorage.setItem(STORAGE_KEYS.SEEDED, 'true');
-      return seed;
-    }
+    const parsedSessions: ExamSessionRecord[] = rawSessions ? JSON.parse(rawSessions) : [];
+    const cleanSessions = Array.isArray(parsedSessions)
+      ? parsedSessions.filter((s) => s && s.id && !s.id.startsWith('sim-seed-'))
+      : [];
 
     return {
-      sessions: rawSessions ? JSON.parse(rawSessions) : [],
+      sessions: cleanSessions,
       mastery: rawMastery ? JSON.parse(rawMastery) : {},
     };
   } catch {
@@ -218,7 +98,6 @@ export function saveProgressToLocalStorage(payload: UserProgressPayload): void {
   try {
     localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(payload.sessions));
     localStorage.setItem(STORAGE_KEYS.MASTERY, JSON.stringify(payload.mastery));
-    localStorage.setItem(STORAGE_KEYS.SEEDED, 'true');
     if (payload.customQuestions) {
       localStorage.setItem(
         STORAGE_KEYS.CUSTOM_QUESTIONS,
@@ -238,23 +117,23 @@ export function mergeProgressData(
     return local;
   }
 
-  // 1. Merge sessions by unique session ID and sort newest first
+  // 1. Merge sessions by unique session ID (excluding any legacy fake seed sessions) and sort newest first
   const sessionMap = new Map<string, ExamSessionRecord>();
   const cloudSessions = Array.isArray(cloud.sessions) ? cloud.sessions : [];
   const localSessions = Array.isArray(local.sessions) ? local.sessions : [];
 
   for (const s of cloudSessions) {
-    if (s && s.id) sessionMap.set(s.id, s);
+    if (s && s.id && !s.id.startsWith('sim-seed-')) sessionMap.set(s.id, s);
   }
   for (const s of localSessions) {
-    if (s && s.id) sessionMap.set(s.id, s);
+    if (s && s.id && !s.id.startsWith('sim-seed-')) sessionMap.set(s.id, s);
   }
 
   const mergedSessions = Array.from(sessionMap.values()).sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
-  // 2. Recompute mastery from deduplicated chronological sessions first so identical sessions are never double-counted
+  // 2. Recompute mastery from deduplicated chronological sessions so identical sessions are never double-counted
   const chronologicalSessions = [...mergedSessions].reverse();
   const computedMastery: Record<string, QuestionMasteryStat> = {};
 
@@ -286,55 +165,6 @@ export function mergeProgressData(
     }
   }
 
-  // Also preserve any standalone mastery entries in cloud or local that might have more attempts than recorded in sessions
-  const allMasteryKeys = new Set<string>([
-    ...Object.keys(local.mastery || {}),
-    ...Object.keys(cloud.mastery || {}),
-    ...Object.keys(computedMastery),
-  ]);
-
-  const mergedMastery: Record<string, QuestionMasteryStat> = {};
-  allMasteryKeys.forEach((qId) => {
-    const fromSessions = computedMastery[qId];
-    const fromLocal = local.mastery?.[qId];
-    const fromCloud = cloud.mastery?.[qId];
-
-    if (fromSessions) {
-      const maxAttempts = Math.max(
-        fromSessions.attempts,
-        fromLocal?.attempts ?? 0,
-        fromCloud?.attempts ?? 0
-      );
-      const maxCorrect = Math.max(
-        fromSessions.correct,
-        fromLocal?.correct ?? 0,
-        fromCloud?.correct ?? 0
-      );
-      mergedMastery[qId] = {
-        ...fromSessions,
-        attempts: maxAttempts,
-        correct: Math.min(maxAttempts, maxCorrect),
-      };
-    } else if (fromLocal && fromCloud) {
-      const newer =
-        new Date(fromLocal.lastAttemptedAt).getTime() >=
-        new Date(fromCloud.lastAttemptedAt).getTime()
-          ? fromLocal
-          : fromCloud;
-      const maxAttempts = Math.max(fromLocal.attempts, fromCloud.attempts);
-      const maxCorrect = Math.max(fromLocal.correct, fromCloud.correct);
-      mergedMastery[qId] = {
-        ...newer,
-        attempts: maxAttempts,
-        correct: Math.min(maxAttempts, maxCorrect),
-      };
-    } else if (fromLocal) {
-      mergedMastery[qId] = fromLocal;
-    } else if (fromCloud) {
-      mergedMastery[qId] = fromCloud;
-    }
-  });
-
   // 3. Merge custom questions by ID
   const customMap = new Map<string, Question>();
   for (const q of cloud.customQuestions || []) {
@@ -346,7 +176,7 @@ export function mergeProgressData(
 
   return {
     sessions: mergedSessions,
-    mastery: mergedMastery,
+    mastery: computedMastery,
     customQuestions: Array.from(customMap.values()),
   };
 }
@@ -385,7 +215,6 @@ export async function syncUserProgressOnLogin(
       .maybeSingle();
 
     if (error) {
-      // Even if select fails or row doesn't exist yet, attempt to upsert local state
       const pushed = await pushProgressToSupabase(userId, email, localPayload);
       return { merged: localPayload, synced: pushed };
     }
@@ -455,7 +284,9 @@ export function clearAllProgress(): {
   try {
     localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify([]));
     localStorage.setItem(STORAGE_KEYS.MASTERY, JSON.stringify({}));
-    localStorage.setItem(STORAGE_KEYS.SEEDED, 'true');
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_SESSIONS);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_MASTERY);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_SEEDED);
   } catch {
     // Ignore
   }

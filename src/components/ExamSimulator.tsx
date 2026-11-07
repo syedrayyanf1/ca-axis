@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -7,39 +7,47 @@ import {
   Clock,
   Flag,
   Minus,
-  PanelRightClose,
-  PanelRightOpen,
   Play,
   Plus,
   RotateCcw,
   SlidersHorizontal,
+  Sparkles,
   Timer,
   XCircle,
 } from 'lucide-react';
 import {
+  areOptionsEqual,
   ExamSessionRecord,
+  formatOptionList,
+  isMultiSelectQuestion,
   OptionId,
+  parseOptionList,
   Question,
   QuestionAttemptRecord,
+  QuestionMasteryStat,
   QuestionSource,
   SubjectId,
 } from '../types';
-import { SOURCE_LABELS, SUBJECTS } from '../data/subjects';
+import { SUBJECTS } from '../data/subjects';
 import { RichContent } from './RichContent';
+import { CAxisLogo } from './CAxisLogo';
+import { ExamLaunchSkeleton } from './UIFeedback';
 
 interface ExamSimulatorProps {
   initialSubjectId: SubjectId;
   initialChapterFilter?: number | null;
   initialSourceFilter?: QuestionSource | null;
   allQuestionsBySubject: Record<SubjectId, Question[]>;
+  mastery: Record<string, QuestionMasteryStat>;
   onCompleteSession: (session: ExamSessionRecord) => void;
   onBackToDashboard: () => void;
   onExamActiveChange?: (isActive: boolean) => void;
+  onTriggerLoadingBar?: () => void;
 }
 
 type SimulatorStage = 'config' | 'active' | 'results';
-type PaletteFilter = 'all' | 'unanswered' | 'flagged';
 type PaceMode = 'icap-standard' | 'speed-drill' | 'relaxed' | 'untimed' | 'custom';
+type ReviewFilter = 'all' | 'incorrect' | 'correct' | 'marked' | 'unanswered';
 
 function formatSeconds(totalSeconds: number): string {
   const safe = Math.max(0, totalSeconds);
@@ -48,14 +56,69 @@ function formatSeconds(totalSeconds: number): string {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+function shuffleArray<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = temp;
+  }
+  return copy;
+}
+
+/**
+ * Smart "Unseen-First" Question Selection Algorithm:
+ * - Bucket 1 (Unseen): Questions never attempted before (shuffled randomly)
+ * - Bucket 2 (Previously Incorrect): Questions seen before & got wrong on last attempt (shuffled randomly)
+ * - Bucket 3 (Previously Correct): Questions got right, sorted by least-recently attempted first
+ */
+function selectSmartQuestions(
+  pool: Question[],
+  count: number,
+  mastery: Record<string, QuestionMasteryStat>
+): Question[] {
+  const unseenBucket: Question[] = [];
+  const incorrectBucket: Question[] = [];
+  const correctBucket: Question[] = [];
+
+  for (const q of pool) {
+    const stat = mastery[q.id];
+    if (!stat || stat.attempts === 0) {
+      unseenBucket.push(q);
+    } else if (!stat.lastOutcomeCorrect) {
+      incorrectBucket.push(q);
+    } else {
+      correctBucket.push(q);
+    }
+  }
+
+  const shuffledUnseen = shuffleArray(unseenBucket);
+  const shuffledIncorrect = shuffleArray(incorrectBucket);
+  // Shuffle first so ties with identical session timestamps are broken randomly, then sort oldest first
+  const sortedCorrect = shuffleArray(correctBucket).sort((a, b) => {
+    const timeA = mastery[a.id]?.lastAttemptedAt
+      ? new Date(mastery[a.id].lastAttemptedAt).getTime()
+      : 0;
+    const timeB = mastery[b.id]?.lastAttemptedAt
+      ? new Date(mastery[b.id].lastAttemptedAt).getTime()
+      : 0;
+    return timeA - timeB;
+  });
+
+  return [...shuffledUnseen, ...shuffledIncorrect, ...sortedCorrect].slice(0, count);
+}
+
 export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   initialSubjectId,
   initialChapterFilter = null,
   initialSourceFilter = null,
   allQuestionsBySubject,
+  mastery,
   onCompleteSession,
   onBackToDashboard,
   onExamActiveChange,
+  onTriggerLoadingBar,
 }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<SubjectId>(initialSubjectId);
   const currentSubject = useMemo(
@@ -72,7 +135,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
   const [maxQuestionCount, setMaxQuestionCount] = useState<number>(20);
   const [paceMode, setPaceMode] = useState<PaceMode>('icap-standard');
-  const [customMinutes, setCustomMinutes] = useState<number>(25);
+  const [customMinutes, setCustomMinutes] = useState<number>(30);
 
   useEffect(() => {
     const subj = SUBJECTS.find((s) => s.id === initialSubjectId) || SUBJECTS[0];
@@ -95,10 +158,12 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
   const matchingPool = useMemo(() => {
     const subjectPool = allQuestionsBySubject[selectedSubjectId] || [];
-    return subjectPool.filter(
-      (q) => selectedChapters.includes(q.chapterId) && selectedSources.includes(q.source)
-    );
-  }, [allQuestionsBySubject, selectedSubjectId, selectedChapters, selectedSources]);
+    return subjectPool.filter((q) => selectedChapters.includes(q.chapterId));
+  }, [allQuestionsBySubject, selectedSubjectId, selectedChapters]);
+
+  const unseenInPoolCount = useMemo(() => {
+    return matchingPool.filter((q) => !mastery[q.id] || mastery[q.id].attempts === 0).length;
+  }, [matchingPool, mastery]);
 
   const effectiveQuestionCount = useMemo(() => {
     if (matchingPool.length === 0) return 0;
@@ -117,15 +182,19 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   const [stage, setStage] = useState<SimulatorStage>('config');
   const [activeQuestions, setActiveQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, OptionId>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<Record<string, boolean>>({});
   const [questionTimings, setQuestionTimings] = useState<Record<string, number>>({});
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [paletteFilter, setPaletteFilter] = useState<PaletteFilter>('all');
-  const [showPaletteDrawer, setShowPaletteDrawer] = useState<boolean>(true);
   const [confirmSubmitModal, setConfirmSubmitModal] = useState<boolean>(false);
   const [completedSession, setCompletedSession] = useState<ExamSessionRecord | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
+  const [activeReviewIndex, setActiveReviewIndex] = useState<number | null>(null);
+  const [isLaunchingSkeleton, setIsLaunchingSkeleton] = useState<boolean>(false);
+
+  const leftPaneRef = useRef<HTMLDivElement | null>(null);
+  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     onExamActiveChange?.(stage === 'active');
@@ -137,11 +206,40 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
   useEffect(() => {
     activeQuestionIdRef.current = currentQuestion ? currentQuestion.id : null;
+    // Reset scroll of question panes when switching questions
+    if (leftPaneRef.current) {
+      leftPaneRef.current.scrollTop = 0;
+    }
+    if (mobileScrollRef.current) {
+      mobileScrollRef.current.scrollTop = 0;
+    }
   }, [currentQuestion]);
+
+  const handleSelectOption = useCallback((question: Question, optId: OptionId) => {
+    const multi = isMultiSelectQuestion(question.correctOption);
+    setSelectedAnswers((prev) => {
+      if (!multi) {
+        return { ...prev, [question.id]: optId };
+      }
+      const existing = parseOptionList(prev[question.id]);
+      const next = existing.includes(optId)
+        ? existing.filter((item) => item !== optId)
+        : [...existing, optId];
+      const formatted = formatOptionList(next);
+      const copy = { ...prev };
+      if (!formatted) {
+        delete copy[question.id];
+      } else {
+        copy[question.id] = formatted;
+      }
+      return copy;
+    });
+  }, []);
 
   const startExam = () => {
     if (matchingPool.length === 0) return;
-    const subset = matchingPool.slice(0, effectiveQuestionCount);
+    onTriggerLoadingBar?.();
+    const subset = selectSmartQuestions(matchingPool, effectiveQuestionCount, mastery);
     setActiveQuestions(subset);
     setCurrentIndex(0);
     setSelectedAnswers({});
@@ -149,23 +247,27 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
     setQuestionTimings({});
     setElapsedSeconds(0);
     setRemainingSeconds(effectiveDurationMinutes * 60);
-    setPaletteFilter('all');
     setConfirmSubmitModal(false);
     setCompletedSession(null);
+    setIsLaunchingSkeleton(true);
     setStage('active');
+    window.setTimeout(() => {
+      setIsLaunchingSkeleton(false);
+    }, 200);
   };
 
   const finalizeExam = () => {
     const records: QuestionAttemptRecord[] = activeQuestions.map((q) => {
       const picked = selectedAnswers[q.id] ?? null;
+      const normCorrect = formatOptionList(parseOptionList(q.correctOption));
       return {
         questionId: q.id,
         subjectId: q.subjectId,
         chapterId: q.chapterId,
         source: q.source,
         selectedOption: picked,
-        correctOption: q.correctOption,
-        isCorrect: picked === q.correctOption,
+        correctOption: normCorrect,
+        isCorrect: areOptionsEqual(picked, normCorrect),
         flagged: !!flaggedQuestions[q.id],
         timeSpentSeconds: questionTimings[q.id] || 0,
       };
@@ -191,8 +293,11 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
       records,
     };
 
+    onTriggerLoadingBar?.();
     setCompletedSession(session);
     setConfirmSubmitModal(false);
+    setReviewFilter('all');
+    setActiveReviewIndex(null);
     setStage('results');
     onCompleteSession(session);
   };
@@ -245,13 +350,13 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const key = e.key.toUpperCase();
       if (key === 'A' || key === '1') {
-        setSelectedAnswers((prev) => ({ ...prev, [currentQuestion.id]: 'A' }));
+        handleSelectOption(currentQuestion, 'A');
       } else if (key === 'B' || key === '2') {
-        setSelectedAnswers((prev) => ({ ...prev, [currentQuestion.id]: 'B' }));
+        handleSelectOption(currentQuestion, 'B');
       } else if (key === 'C' || key === '3') {
-        setSelectedAnswers((prev) => ({ ...prev, [currentQuestion.id]: 'C' }));
+        handleSelectOption(currentQuestion, 'C');
       } else if (key === 'D' || key === '4') {
-        setSelectedAnswers((prev) => ({ ...prev, [currentQuestion.id]: 'D' }));
+        handleSelectOption(currentQuestion, 'D');
       } else if (key === 'F') {
         setFlaggedQuestions((prev) => ({
           ...prev,
@@ -266,29 +371,19 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [stage, currentQuestion, currentIndex, activeQuestions.length]);
+  }, [
+    stage,
+    currentQuestion,
+    currentIndex,
+    activeQuestions.length,
+    handleSelectOption,
+  ]);
 
   const toggleChapter = (chapterId: number) => {
     setSelectedChapters((prev) =>
       prev.includes(chapterId) ? prev.filter((id) => id !== chapterId) : [...prev, chapterId]
     );
   };
-
-  const toggleSource = (source: QuestionSource) => {
-    setSelectedSources((prev) =>
-      prev.includes(source) ? prev.filter((s) => s !== source) : [...prev, source]
-    );
-  };
-
-  const filteredPaletteIndices = useMemo(() => {
-    return activeQuestions
-      .map((q, idx) => ({ q, idx }))
-      .filter(({ q }) => {
-        if (paletteFilter === 'unanswered') return !selectedAnswers[q.id];
-        if (paletteFilter === 'flagged') return !!flaggedQuestions[q.id];
-        return true;
-      });
-  }, [activeQuestions, paletteFilter, selectedAnswers, flaggedQuestions]);
 
   const answeredTotal = Object.keys(selectedAnswers).length;
   const flaggedTotal = Object.values(flaggedQuestions).filter(Boolean).length;
@@ -299,20 +394,20 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
     const presetCounts = [10, 20, 35, 50];
 
     return (
-      <div className="mx-auto max-w-5xl space-y-8">
+      <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-[28px] font-bold leading-tight tracking-tight text-[#09090B] dark:text-[#FAFAFA]">
+            <h1 className="font-display text-2xl sm:text-[28px] font-bold leading-tight tracking-tight text-[#09090B] dark:text-[#FAFAFA]">
               Test Yourself
             </h1>
-            <p className="mt-1 text-sm text-[#71717A] dark:text-[#A1A1AA]">
-              Configure subject chapters, question sources, count, and exam pace.
+            <p className="mt-1 text-xs sm:text-sm text-[#71717A] dark:text-[#A1A1AA]">
+              Smart unseen-first selection prioritizes unattempted questions automatically.
             </p>
           </div>
           <button
             type="button"
             onClick={onBackToDashboard}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-4 py-2 text-xs font-medium text-[#09090B] transition-colors hover:bg-zinc-50 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-200 dark:hover:bg-zinc-800 whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-3.5 py-2 text-xs font-medium text-[#09090B] transition-colors hover:bg-zinc-50 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-200 dark:hover:bg-zinc-800 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Back to Overview</span>
@@ -324,10 +419,15 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
           <h2 className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Step 1 · Choose PRC Subject
           </h2>
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {SUBJECTS.map((subj) => {
               const isSelected = subj.id === selectedSubjectId;
-              const count = (allQuestionsBySubject[subj.id] || []).length;
+              const subjQuestions = allQuestionsBySubject[subj.id] || [];
+              const count = subjQuestions.length;
+              const unseenSubj = subjQuestions.filter(
+                (q) => !mastery[q.id] || mastery[q.id].attempts === 0
+              ).length;
+
               return (
                 <button
                   key={subj.id}
@@ -345,7 +445,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                         {subj.code}
                       </span>
                       <span className="text-zinc-500 dark:text-zinc-400">
-                        {count} MCQs
+                        {unseenSubj} Unseen / {count}
                       </span>
                     </div>
                     <p className="mt-2.5 font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
@@ -363,7 +463,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Step 2: Select Chapters */}
-          <div className="lg:col-span-7 rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215]">
+          <div className="lg:col-span-7 rounded-xl border border-black/[0.08] bg-white/80 p-4 sm:p-6 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-black/[0.06] dark:border-white/[0.06]">
               <div>
                 <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
@@ -398,8 +498,12 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
             <div className="mt-4 space-y-2">
               {currentSubject.chapters.map((ch) => {
                 const checked = selectedChapters.includes(ch.id);
-                const chCount = (allQuestionsBySubject[selectedSubjectId] || []).filter(
+                const chQuestions = (allQuestionsBySubject[selectedSubjectId] || []).filter(
                   (q) => q.chapterId === ch.id
+                );
+                const chCount = chQuestions.length;
+                const chUnseenCount = chQuestions.filter(
+                  (q) => !mastery[q.id] || mastery[q.id].attempts === 0
                 ).length;
 
                 return (
@@ -407,13 +511,13 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                     key={ch.id}
                     type="button"
                     onClick={() => toggleChapter(ch.id)}
-                    className={`w-full flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-all cursor-pointer ${
+                    className={`w-full flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 sm:px-4 sm:py-3 text-left text-sm transition-all cursor-pointer ${
                       checked
                         ? 'border-zinc-900/40 bg-zinc-50 text-[#09090B] dark:border-white/30 dark:bg-zinc-800/50 dark:text-white'
                         : 'border-black/[0.06] bg-white text-zinc-600 hover:bg-zinc-50 dark:border-white/[0.06] dark:bg-[#09090B] dark:text-zinc-400'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded text-[11px] font-semibold transition-colors ${
                           checked
@@ -423,66 +527,46 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                       >
                         {checked ? '✓' : ''}
                       </span>
-                      <div>
+                      <div className="truncate">
                         <span className="text-xs text-zinc-500 dark:text-zinc-400 mr-2">
                           Ch {String(ch.id).padStart(2, '0')}
                         </span>
                         <span className="font-medium">{ch.name}</span>
                       </div>
                     </div>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
-                      {chCount} MCQs
-                    </span>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {chCount > 0 ? (
+                        <span
+                          className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${
+                            chUnseenCount > 0
+                              ? 'border-[#6366F1]/30 bg-[#6366F1]/10 text-[#6366F1] dark:border-[#6366F1]/40 dark:bg-[#6366F1]/15 dark:text-indigo-300'
+                              : 'border-black/[0.08] bg-zinc-100 text-zinc-600 dark:border-white/[0.08] dark:bg-zinc-800 dark:text-zinc-400'
+                          }`}
+                        >
+                          {chUnseenCount} Unseen / {chCount} Total
+                        </span>
+                      ) : (
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500">0 MCQs</span>
+                      )}
+                    </div>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Step 3, 4, 5: Sources, Question Count & Time Allocation */}
-          <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215] space-y-6">
+          {/* Step 3 & 4: Question Count & Time Allocation */}
+          <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-black/[0.08] bg-white/80 p-4 sm:p-6 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75 space-y-6">
             <div className="space-y-6">
-              {/* Step 3: Sources */}
-              <div>
-                <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
-                  Step 3 · Question Sources
-                </h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Combine official ICAP Self-Tests, APQ, and Practice Sets
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(['self-test', 'apq', 'practice-set'] as QuestionSource[]).map((src) => {
-                    const active = selectedSources.includes(src);
-                    const count = (allQuestionsBySubject[selectedSubjectId] || []).filter(
-                      (q) => q.source === src && selectedChapters.includes(q.chapterId)
-                    ).length;
-                    return (
-                      <button
-                        key={src}
-                        type="button"
-                        onClick={() => toggleSource(src)}
-                        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
-                          active
-                            ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-black'
-                            : 'border-black/[0.08] bg-[#FAFAFA] text-zinc-600 hover:bg-zinc-100 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-400'
-                        }`}
-                      >
-                        <span>{SOURCE_LABELS[src].shortLabel}</span>
-                        <span className="opacity-70">({count})</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Step 4: Tactile Question Count Selector */}
-              <div className="border-t border-black/[0.06] pt-5 dark:border-white/[0.06] space-y-3">
+              {/* Step 3: Tactile Question Count Selector */}
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
-                    Step 4 · Question Count
+                    Step 3 · Question Count
                   </h2>
                   <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    {effectiveQuestionCount} of {matchingPool.length} available
+                    {unseenInPoolCount} Unseen / {matchingPool.length} Total
                   </span>
                 </div>
 
@@ -561,13 +645,25 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                     </button>
                   </div>
                 </div>
+
+                {/* Smart Selection Indicator */}
+                <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  <Sparkles className="h-3 w-3 text-[#6366F1] shrink-0" />
+                  <span>
+                    {unseenInPoolCount >= effectiveQuestionCount
+                      ? `All ${effectiveQuestionCount} questions will be drawn fresh from ${unseenInPoolCount} unseen MCQs.`
+                      : unseenInPoolCount > 0
+                        ? `Draws all ${unseenInPoolCount} unseen MCQs first, then ${effectiveQuestionCount - unseenInPoolCount} review MCQs.`
+                        : 'All questions in this pool have been seen; prioritizes previously incorrect & oldest first.'}
+                  </span>
+                </div>
               </div>
 
-              {/* Step 5: Time Allocation Segmented Toggle Cards */}
+              {/* Step 4: Time Allocation Segmented Toggle Cards */}
               <div className="border-t border-black/[0.06] pt-5 dark:border-white/[0.06] space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
-                    Step 5 · Time Allocation
+                    Step 4 · Time Allocation
                   </h2>
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     <Timer className="h-3.5 w-3.5" />
@@ -693,91 +789,259 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
     );
   }
 
-  // STAGE 2: CLEAN, FOCUSED ACTIVE EXAM SCREEN
+  // STAGE 2: ZERO-SCROLL SPLIT-SCREEN ACTIVE EXAM WORKSPACE (DESKTOP) + FULL-VIEWPORT MOBILE EXAM LAYOUT
   if (stage === 'active' && currentQuestion) {
-    const selectedOpt = selectedAnswers[currentQuestion.id] || null;
+    if (isLaunchingSkeleton) {
+      return <ExamLaunchSkeleton />;
+    }
+
+    const selectedRaw = selectedAnswers[currentQuestion.id] || null;
+    const selectedOptionSet = new Set(parseOptionList(selectedRaw));
+    const isMulti = isMultiSelectQuestion(currentQuestion.correctOption);
     const isFlagged = !!flaggedQuestions[currentQuestion.id];
     const isLowTime = paceMode !== 'untimed' && remainingSeconds <= 120;
 
+    const getQuestionTileClasses = (q: Question, idx: number, sizeClass: string) => {
+      const isCurrent = idx === currentIndex;
+      const isAns = !!selectedAnswers[q.id];
+      const isFlg = !!flaggedQuestions[q.id];
+
+      let colorClass =
+        'bg-zinc-100 text-zinc-600 border border-black/[0.08] hover:border-black/[0.2] dark:bg-zinc-800/80 dark:text-zinc-400 dark:border-white/[0.07] dark:hover:border-white/[0.2]';
+      if (isFlg) {
+        colorClass =
+          'bg-amber-100 text-amber-800 border border-amber-400 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/50';
+      } else if (isAns) {
+        colorClass =
+          'bg-emerald-100 text-emerald-800 border border-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50';
+      }
+
+      const activeRingClass = isCurrent
+        ? 'ring-2 ring-zinc-900 dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-[#09090B]'
+        : '';
+
+      return `${sizeClass} rounded-lg text-xs font-semibold flex items-center justify-center shrink-0 transition-all cursor-pointer ${colorClass} ${activeRingClass}`;
+    };
+
     return (
-      <div className="mx-auto max-w-6xl space-y-6">
-        {/* Top Exam Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-black/[0.08] bg-white px-5 py-3 dark:border-white/[0.07] dark:bg-[#121215]">
-          <div className="flex items-center gap-2.5 text-xs text-zinc-500 dark:text-zinc-400">
-            <span className="font-display font-semibold text-[#09090B] dark:text-white">
-              {currentSubject.code} · {currentSubject.shortTitle}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>
-              Question {currentIndex + 1} of {activeQuestions.length}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {/* Live Exam Countdown Timer: strictly JetBrains Mono */}
-            <div
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-sm font-medium tabular-nums ${
-                isLowTime
-                  ? 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                  : 'border-black/[0.08] bg-[#FAFAFA] text-[#09090B] dark:border-white/[0.07] dark:bg-[#09090B] dark:text-white'
-              }`}
-            >
-              <Clock className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                {paceMode === 'untimed'
-                  ? formatSeconds(elapsedSeconds)
-                  : formatSeconds(remainingSeconds)}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowPaletteDrawer((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-300 dark:hover:bg-zinc-800 cursor-pointer"
-              title="Toggle Question Palette"
-            >
-              {showPaletteDrawer ? (
-                <PanelRightClose className="h-3.5 w-3.5" />
-              ) : (
-                <PanelRightOpen className="h-3.5 w-3.5" />
-              )}
-              <span className="hidden sm:inline">Palette</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setConfirmSubmitModal(true)}
-              className="rounded-lg bg-zinc-900 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              Submit Exam
-            </button>
-          </div>
-        </div>
-
-        {/* Main Centered Stage + Collapsible Question Palette Drawer */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
-          <div
-            className={`${
-              showPaletteDrawer ? 'lg:col-span-8' : 'lg:col-span-10 lg:col-start-2'
-            } transition-all`}
-          >
-            <div className="rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215]">
-              {/* Quiet Question Header */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-black/[0.06] dark:border-white/[0.06] text-xs text-zinc-500 dark:text-zinc-400">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-[#09090B] dark:text-white">
-                    {currentQuestion.id}
+      <div className="relative flex flex-col w-full h-dvh md:h-full overflow-hidden">
+        {/* =====================================================================
+            MOBILE EXAM LAYOUT (< 768px): Strict h-dvh flex-col overflow-hidden
+           ===================================================================== */}
+        <div className="md:hidden h-dvh w-full flex flex-col bg-transparent overflow-hidden">
+          {/* Top Fixed Header */}
+          <div className="shrink-0 px-3 pt-2.5 pb-2 border-b border-black/[0.08] bg-white/80 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#09090B]/75">
+            {/* Row 1: CAxis Logo + PRC 1 · 1/20 on left; compact Timer pill and Submit button on right */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <CAxisLogo containerClassName="h-6 w-6" svgClassName="h-4 w-4" />
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="font-display text-sm font-bold tracking-tight text-[#09090B] dark:text-white">
+                    {currentSubject.code}
                   </span>
-                  <span aria-hidden="true">·</span>
+                  <span className="text-zinc-400 dark:text-zinc-600" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="font-display text-sm font-semibold text-[#09090B] dark:text-white">
+                    {currentIndex + 1}/{activeQuestions.length}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div
+                  className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 font-mono text-xs font-medium tabular-nums ${
+                    isLowTime
+                      ? 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                      : 'border-black/[0.08] bg-[#FAFAFA] text-[#09090B] dark:border-white/[0.07] dark:bg-[#121215] dark:text-white'
+                  }`}
+                >
+                  <Clock className="h-3 w-3 shrink-0" />
                   <span>
-                    Ch {currentQuestion.chapterId}: {currentQuestion.chapterName}
-                  </span>
-                  <span aria-hidden="true">·</span>
-                  <span className="rounded border border-black/[0.08] bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-700 dark:border-white/[0.07] dark:bg-zinc-800 dark:text-zinc-300">
-                    {SOURCE_LABELS[currentQuestion.source].shortLabel}
+                    {paceMode === 'untimed'
+                      ? formatSeconds(elapsedSeconds)
+                      : formatSeconds(remainingSeconds)}
                   </span>
                 </div>
 
+                <button
+                  type="button"
+                  onClick={() => setConfirmSubmitModal(true)}
+                  className="rounded-lg bg-zinc-900 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            {/* Row 2: Horizontal swipeable row of numbered, color-coded Question Tiles (w-7 h-7) */}
+            <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5">
+              {activeQuestions.map((q, idx) => (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => setCurrentIndex(idx)}
+                  className={getQuestionTileClasses(q, idx, 'w-7 h-7')}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Middle Scrollable Content Area (No double nested cards on mobile) */}
+          <div
+            ref={mobileScrollRef}
+            key={`mobile-q-${currentQuestion.id}`}
+            className="flex-1 overflow-y-auto px-3 py-3 space-y-3 animate-question-enter"
+          >
+            {/* Single Compact Metadata Line */}
+            <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="font-medium truncate">
+                {currentQuestion.chapterName}
+              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                {isMulti && (
+                  <span className="rounded-md border border-[#6366F1]/40 bg-[#6366F1]/10 px-2 py-0.5 text-[11px] font-medium text-[#6366F1] dark:border-[#6366F1]/50 dark:bg-[#6366F1]/15 dark:text-indigo-300">
+                    Select all that apply
+                  </span>
+                )}
+                {selectedRaw && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedAnswers((prev) => {
+                        const copy = { ...prev };
+                        delete copy[currentQuestion.id];
+                        return copy;
+                      })
+                    }
+                    className="text-[11px] font-medium text-zinc-500 underline dark:text-zinc-400 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Question Text */}
+            <div className="text-[15px] leading-relaxed text-[#09090B] dark:text-zinc-100">
+              <RichContent content={currentQuestion.questionText} />
+            </div>
+
+            {/* Options A, B, C, D */}
+            <div className="space-y-2 pt-1">
+              {currentQuestion.options.map((opt) => {
+                const isChosen = selectedOptionSet.has(opt.id);
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSelectOption(currentQuestion, opt.id)}
+                    className={`w-full flex items-center justify-between gap-3 rounded-xl border p-3 text-left text-sm active:scale-[0.985] transition-all duration-150 cursor-pointer ${
+                      isChosen
+                        ? 'border-zinc-900 bg-zinc-100 ring-1 ring-zinc-900 dark:border-white dark:bg-zinc-800/80 dark:ring-white'
+                        : 'border-black/[0.08] bg-white dark:border-white/[0.07] dark:bg-[#121215]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold transition-all duration-150 ${
+                          isChosen
+                            ? 'scale-105 bg-zinc-900 text-white dark:bg-white dark:text-black'
+                            : 'scale-100 border border-black/[0.08] bg-zinc-100 text-zinc-700 dark:border-white/[0.07] dark:bg-zinc-800 dark:text-zinc-300'
+                        }`}
+                      >
+                        {opt.id}
+                      </span>
+                      <div className="text-sm font-medium text-[#09090B] dark:text-[#FAFAFA] min-w-0">
+                        <RichContent content={opt.text} />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Bottom Fixed Action Bar */}
+          <div className="shrink-0 px-3 py-2.5 border-t border-black/[0.08] bg-white dark:border-white/[0.07] dark:bg-[#09090B] grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              disabled={currentIndex === 0}
+              onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+              className="inline-flex items-center justify-center gap-1 rounded-lg border border-black/[0.08] bg-white px-3 py-2.5 text-xs font-semibold text-[#09090B] disabled:opacity-40 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-200 cursor-pointer"
+            >
+              <span>← Prev</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setFlaggedQuestions((prev) => ({
+                  ...prev,
+                  [currentQuestion.id]: !prev[currentQuestion.id],
+                }))
+              }
+              className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+                isFlagged
+                  ? 'border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-500/50 dark:bg-amber-500/20 dark:text-amber-400'
+                  : 'border-black/[0.08] bg-white text-zinc-600 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-300'
+              }`}
+            >
+              <Flag className={`h-3.5 w-3.5 ${isFlagged ? 'fill-current' : ''}`} />
+              <span>{isFlagged ? 'Marked' : 'Mark'}</span>
+            </button>
+
+            {currentIndex < activeQuestions.length - 1 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentIndex((i) => Math.min(activeQuestions.length - 1, i + 1))
+                }
+                className="inline-flex items-center justify-center gap-1 rounded-lg bg-zinc-900 px-3 py-2.5 text-xs font-semibold text-white dark:bg-white dark:text-black cursor-pointer"
+              >
+                <span>Next →</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmSubmitModal(true)}
+                className="inline-flex items-center justify-center gap-1 rounded-lg bg-zinc-900 px-3 py-2.5 text-xs font-semibold text-white dark:bg-white dark:text-black cursor-pointer"
+              >
+                <span>Submit</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* =====================================================================
+            DESKTOP & TABLET EXAM LAYOUT (>= 768px): Zero-Scroll Split-Screen
+           ===================================================================== */}
+        <div className="hidden md:flex md:flex-col md:w-full md:h-full md:overflow-hidden md:gap-3.5">
+          {/* Compact Exam Header Bar + Color-Coded Question Tiles */}
+          <div className="shrink-0 rounded-xl border border-black/[0.08] bg-white/80 px-4 py-2.5 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75">
+            <div className="flex items-center justify-between gap-2">
+              {/* Left: CAxis Logo + Subject Title + Question X of Y */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <CAxisLogo containerClassName="h-6 w-6" svgClassName="h-4 w-4" />
+                <span className="inline-flex items-center rounded-md border border-black/[0.08] bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-[#09090B] dark:border-white/[0.08] dark:bg-zinc-800 dark:text-white shrink-0">
+                  {currentSubject.code}
+                </span>
+                <span className="font-display text-sm font-semibold text-[#09090B] dark:text-white truncate">
+                  {currentSubject.shortTitle}
+                </span>
+                <span className="text-zinc-300 dark:text-zinc-700" aria-hidden="true">
+                  ·
+                </span>
+                <span className="font-display text-sm font-semibold text-[#09090B] dark:text-white whitespace-nowrap">
+                  Question {currentIndex + 1} of {activeQuestions.length}
+                </span>
+              </div>
+
+              {/* Right: Mark Toggle, Countdown Timer, Submit */}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() =>
@@ -786,76 +1050,105 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                       [currentQuestion.id]: !prev[currentQuestion.id],
                     }))
                   }
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                     isFlagged
-                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                      : 'border-black/[0.08] text-zinc-600 hover:bg-zinc-50 dark:border-white/[0.07] dark:text-zinc-300 dark:hover:bg-zinc-800'
+                      ? 'border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-500/50 dark:bg-amber-500/20 dark:text-amber-400'
+                      : 'border-black/[0.08] bg-white text-zinc-600 hover:bg-zinc-50 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-300 dark:hover:bg-zinc-800'
+                  }`}
+                  title="Mark for Review (Shortcut: F)"
+                >
+                  <Flag className={`h-3.5 w-3.5 ${isFlagged ? 'fill-current' : ''}`} />
+                  <span>{isFlagged ? 'Marked' : 'Mark'}</span>
+                </button>
+
+                {/* Live Exam Countdown Timer: strictly JetBrains Mono */}
+                <div
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-mono text-sm font-medium tabular-nums ${
+                    isLowTime
+                      ? 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                      : 'border-black/[0.08] bg-[#FAFAFA] text-[#09090B] dark:border-white/[0.07] dark:bg-[#09090B] dark:text-white'
                   }`}
                 >
-                  <Flag className="h-3.5 w-3.5" />
-                  <span>{isFlagged ? 'Flagged' : 'Flag for Review'}</span>
-                </button>
-              </div>
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    {paceMode === 'untimed'
+                      ? formatSeconds(elapsedSeconds)
+                      : formatSeconds(remainingSeconds)}
+                  </span>
+                </div>
 
-              {/* Question Stem (with Textbook Accounting Tables & KaTeX) */}
-              <div className="mt-6 text-[15px] leading-relaxed">
-                <RichContent content={currentQuestion.questionText} />
-              </div>
-
-              {/* Tactile Option Cards (A, B, C, D) */}
-              <div className="mt-7 space-y-2.5">
-                {currentQuestion.options.map((opt) => {
-                  const isChosen = selectedOpt === opt.id;
-
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() =>
-                        setSelectedAnswers((prev) => ({
-                          ...prev,
-                          [currentQuestion.id]: opt.id,
-                        }))
-                      }
-                      className={`group w-full flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all cursor-pointer ${
-                        isChosen
-                          ? 'border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900 dark:border-white dark:bg-zinc-800/60 dark:ring-white'
-                          : 'border-black/[0.08] bg-white hover:border-black/[0.15] hover:bg-zinc-50/60 dark:border-white/[0.07] dark:bg-[#121215] dark:hover:border-white/[0.15] dark:hover:bg-zinc-800/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
-                            isChosen
-                              ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
-                              : 'border border-black/[0.08] bg-zinc-100 text-zinc-700 dark:border-white/[0.07] dark:bg-zinc-800 dark:text-zinc-300'
-                          }`}
-                        >
-                          {opt.id}
-                        </span>
-                        <div className="text-sm font-medium text-[#09090B] dark:text-[#FAFAFA]">
-                          <RichContent content={opt.text} />
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Bottom Navigation Controls */}
-              <div className="mt-8 flex items-center justify-between border-t border-black/[0.06] pt-5 dark:border-white/[0.06]">
                 <button
                   type="button"
-                  disabled={currentIndex === 0}
-                  onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-4 py-2 text-xs font-medium text-[#09090B] transition-colors hover:bg-zinc-50 disabled:opacity-40 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-200 cursor-pointer"
+                  onClick={() => setConfirmSubmitModal(true)}
+                  className="rounded-lg bg-zinc-900 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  <span>Previous</span>
+                  Submit Exam
                 </button>
+              </div>
+            </div>
 
-                <div className="flex items-center gap-2.5">
-                  {selectedOpt && (
+            {/* Color-Coded Numbered Question Tiles (w-7 h-7 sm:w-8 sm:h-8) */}
+            <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5">
+              {activeQuestions.map((q, idx) => (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => setCurrentIndex(idx)}
+                  title={`Go to Question ${idx + 1}${
+                    flaggedQuestions[q.id]
+                      ? ' (Flagged)'
+                      : selectedAnswers[q.id]
+                        ? ' (Solved)'
+                        : ''
+                  }`}
+                  className={getQuestionTileClasses(q, idx, 'w-7 h-7 sm:w-8 sm:h-8')}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Two-Column Side-by-Side Stage on Desktop (grid-cols-12) */}
+          <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
+            {/* LEFT COLUMN (7 cols): Question Stem, Numbered Statements, and Accounting Tables */}
+            <div
+              ref={leftPaneRef}
+              className="col-span-7 flex flex-col rounded-xl border border-black/[0.08] bg-white/80 p-5 h-full overflow-y-auto backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75"
+            >
+              <div key={`desktop-stem-${currentQuestion.id}`} className="flex flex-col flex-1 animate-question-enter">
+                {/* Compact Question Metadata Row */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/[0.06] dark:border-white/[0.06] text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-[#09090B] dark:text-white">
+                      {currentQuestion.id}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span>{currentQuestion.chapterName}</span>
+                  </div>
+
+                  {isMulti && (
+                    <span className="rounded-md border border-[#6366F1]/40 bg-[#6366F1]/10 px-2 py-0.5 text-[11px] font-medium text-[#6366F1] dark:border-[#6366F1]/50 dark:bg-[#6366F1]/15 dark:text-indigo-300">
+                      Select all that apply
+                    </span>
+                  )}
+                </div>
+
+                {/* Question Stem */}
+                <div className="mt-4 text-[15px] leading-relaxed flex-1">
+                  <RichContent content={currentQuestion.questionText} />
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN (5 cols): Options A, B, C, D at Same Eye Level + Prev/Next Controls */}
+            <div className="col-span-5 flex flex-col justify-between rounded-xl border border-black/[0.08] bg-white/80 p-5 h-full overflow-y-auto backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75">
+              <div key={`desktop-opts-${currentQuestion.id}`} className="space-y-3 animate-question-enter">
+                <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/[0.06]">
+                  <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                    {isMulti ? 'Select All Correct Options' : 'Select Answer'}
+                  </span>
+                  {selectedRaw && (
                     <button
                       type="button"
                       onClick={() =>
@@ -865,11 +1158,61 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                           return copy;
                         })
                       }
-                      className="rounded-lg px-3 py-2 text-xs font-medium text-zinc-500 hover:text-[#09090B] dark:text-zinc-400 dark:hover:text-white cursor-pointer"
+                      className="text-xs font-medium text-zinc-500 hover:text-[#09090B] dark:text-zinc-400 dark:hover:text-white cursor-pointer"
                     >
                       Clear Choice
                     </button>
                   )}
+                </div>
+
+                {/* Tactile Option Cards (A, B, C, D) */}
+                <div className="space-y-2.5">
+                  {currentQuestion.options.map((opt) => {
+                    const isChosen = selectedOptionSet.has(opt.id);
+
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => handleSelectOption(currentQuestion, opt.id)}
+                        className={`group w-full flex items-center justify-between gap-3 rounded-xl border p-3.5 text-left text-sm active:scale-[0.985] transition-all duration-150 cursor-pointer ${
+                          isChosen
+                            ? 'border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900 dark:border-white dark:bg-zinc-800/60 dark:ring-white'
+                            : 'border-black/[0.08] bg-white hover:border-black/[0.15] hover:bg-zinc-50/60 dark:border-white/[0.07] dark:bg-[#121215] dark:hover:border-white/[0.15] dark:hover:bg-zinc-800/40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold transition-all duration-150 ${
+                              isChosen
+                                ? 'scale-105 bg-zinc-900 text-white dark:bg-white dark:text-black'
+                                : 'scale-100 border border-black/[0.08] bg-zinc-100 text-zinc-700 dark:border-white/[0.07] dark:bg-zinc-800 dark:text-zinc-300'
+                            }`}
+                          >
+                            {opt.id}
+                          </span>
+                          <div className="text-sm font-medium text-[#09090B] dark:text-[#FAFAFA] min-w-0">
+                            <RichContent content={opt.text} />
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Desktop Navigation Controls Right Below Options A–D */}
+              <div className="pt-4 mt-4 border-t border-black/[0.06] dark:border-white/[0.06] space-y-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    disabled={currentIndex === 0}
+                    onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-4 py-2.5 text-xs font-medium text-[#09090B] transition-colors hover:bg-zinc-50 disabled:opacity-40 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <span>Previous Question</span>
+                  </button>
 
                   {currentIndex < activeQuestions.length - 1 ? (
                     <button
@@ -877,110 +1220,28 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                       onClick={() =>
                         setCurrentIndex((i) => Math.min(activeQuestions.length - 1, i + 1))
                       }
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
                     >
-                      <span>Next</span>
+                      <span>Next Question</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setConfirmSubmitModal(true)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-5 py-2 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
                     >
                       <span>Finish &amp; Submit</span>
                     </button>
                   )}
                 </div>
+
+                <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500">
+                  Shortcuts: A–D to select · ←/→ to navigate · F to flag
+                </p>
               </div>
             </div>
           </div>
-
-          {/* Question Palette Drawer */}
-          {showPaletteDrawer && (
-            <div className="lg:col-span-4 rounded-xl border border-black/[0.08] bg-white p-5 dark:border-white/[0.07] dark:bg-[#121215] space-y-5">
-              <div>
-                <h2 className="font-display text-sm font-semibold tracking-tight text-[#09090B] dark:text-white">
-                  Question Palette
-                </h2>
-                <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                  <span>Solved {answeredTotal}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>Left {activeQuestions.length - answeredTotal}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>Flagged {flaggedTotal}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-1 rounded-lg border border-black/[0.06] bg-zinc-100 p-1 dark:border-white/[0.06] dark:bg-zinc-900">
-                {(['all', 'unanswered', 'flagged'] as PaletteFilter[]).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setPaletteFilter(f)}
-                    className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors whitespace-nowrap cursor-pointer ${
-                      paletteFilter === f
-                        ? 'bg-white text-[#09090B] shadow-2xs dark:bg-zinc-800 dark:text-white'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400'
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-5 gap-2">
-                {filteredPaletteIndices.map(({ q, idx }) => {
-                  const isCurrent = idx === currentIndex;
-                  const isAns = !!selectedAnswers[q.id];
-                  const isFlg = !!flaggedQuestions[q.id];
-
-                  let btnClass =
-                    'border-black/[0.08] bg-[#FAFAFA] text-zinc-600 hover:border-black/[0.2] dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-400';
-                  if (isFlg) {
-                    btnClass =
-                      'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300';
-                  } else if (isAns) {
-                    btnClass =
-                      'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-black';
-                  }
-
-                  return (
-                    <button
-                      key={q.id}
-                      type="button"
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`relative flex h-9 items-center justify-center rounded-lg border text-xs font-medium transition-all cursor-pointer ${btnClass} ${
-                        isCurrent ? 'ring-2 ring-[#6366F1]' : ''
-                      }`}
-                    >
-                      <span>{idx + 1}</span>
-                      {isFlg && (
-                        <Flag className="absolute -top-1 -right-1 h-3 w-3 fill-amber-500 text-amber-600" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {filteredPaletteIndices.length === 0 && (
-                <p className="py-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                  No questions in "{paletteFilter}" view.
-                </p>
-              )}
-
-              <div className="border-t border-black/[0.06] pt-4 dark:border-white/[0.06] grid grid-cols-2 gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-zinc-900 dark:bg-white" />
-                  <span>Answered ({answeredTotal})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  <span>Flagged ({flaggedTotal})</span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Submit Confirmation Modal */}
@@ -1003,7 +1264,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
               <div className="mt-5 grid grid-cols-3 gap-2.5 rounded-lg border border-black/[0.08] bg-[#FAFAFA] p-3.5 text-center dark:border-white/[0.07] dark:bg-[#09090B]">
                 <div>
-                  <div className="font-display text-lg font-semibold text-[#09090B] dark:text-white">
+                  <div className="font-display text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                     {answeredTotal}
                   </div>
                   <div className="text-[11px] text-zinc-500 dark:text-zinc-400">Answered</div>
@@ -1049,28 +1310,70 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   if (stage === 'results' && completedSession) {
     const passed = completedSession.scorePercentage >= currentSubject.passingPercentage;
 
+    const recordByQuestionId = new Map<string, QuestionAttemptRecord>();
+    for (const r of completedSession.records) {
+      recordByQuestionId.set(r.questionId, r);
+    }
+
+    const correctCount = completedSession.correctCount;
+    const unansweredCount =
+      completedSession.totalQuestions - completedSession.attemptedCount;
+    const incorrectCount =
+      completedSession.attemptedCount - completedSession.correctCount;
+    const markedCount = completedSession.records.filter((r) => r.flagged).length;
+
+    const jumpToReviewQuestion = (idx: number) => {
+      setActiveReviewIndex(idx);
+      const scrollNow = () => {
+        const el = document.getElementById(`review-question-${idx}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      };
+      if (reviewFilter !== 'all') {
+        setReviewFilter('all');
+        window.setTimeout(scrollNow, 60);
+      } else {
+        scrollNow();
+      }
+    };
+
+    const filteredReviewQuestions = activeQuestions
+      .map((q, idx) => ({ q, idx, rec: recordByQuestionId.get(q.id) }))
+      .filter(({ rec }) => {
+        if (reviewFilter === 'correct') return !!rec?.isCorrect;
+        if (reviewFilter === 'incorrect')
+          return rec?.selectedOption !== null && !rec?.isCorrect;
+        if (reviewFilter === 'marked') return !!rec?.flagged;
+        if (reviewFilter === 'unanswered') return rec?.selectedOption === null;
+        return true;
+      });
+
     return (
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215]">
+        <div className="rounded-xl border border-black/[0.08] bg-white p-4 sm:p-6 dark:border-white/[0.07] dark:bg-[#121215]">
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/[0.06] pb-5 dark:border-white/[0.06]">
-            <div>
-              <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                <span className="font-medium text-[#09090B] dark:text-white">
-                  {currentSubject.title}
-                </span>
-                <span aria-hidden="true">·</span>
-                <span>Passing Standard: {currentSubject.passingPercentage}%</span>
+            <div className="flex items-center gap-3.5">
+              <CAxisLogo containerClassName="h-10 w-10" svgClassName="h-6 w-6" />
+              <div>
+                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="font-medium text-[#09090B] dark:text-white">
+                    {currentSubject.title}
+                  </span>
+                  <span aria-hidden="true">·</span>
+                  <span>Passing Standard: {currentSubject.passingPercentage}%</span>
+                </div>
+                <h1 className="mt-1 font-display text-xl sm:text-2xl font-bold tracking-tight text-[#09090B] dark:text-white">
+                  {passed ? 'Examination Passed' : 'Below Passing Threshold'}
+                </h1>
               </div>
-              <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-[#09090B] dark:text-white">
-                {passed ? 'Examination Passed' : 'Below Passing Threshold'}
-              </h1>
             </div>
 
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setStage('config')}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-4 py-2 text-xs font-medium text-[#09090B] hover:bg-zinc-50 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-200 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] bg-white px-3.5 py-2 text-xs font-medium text-[#09090B] hover:bg-zinc-50 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-200 cursor-pointer"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 <span>Configure New Test</span>
@@ -1078,16 +1381,16 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
               <button
                 type="button"
                 onClick={startExam}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 cursor-pointer"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                <span>Retake Test</span>
+                <span>Next Set</span>
               </button>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
+            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-3.5 sm:p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
               <div className="text-xs text-zinc-500 dark:text-zinc-400">Accuracy Score</div>
               <div className="mt-1 font-display text-2xl font-semibold text-[#09090B] dark:text-white">
                 {completedSession.scorePercentage}%
@@ -1097,7 +1400,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
               </div>
             </div>
 
-            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
+            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-3.5 sm:p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
               <div className="text-xs text-zinc-500 dark:text-zinc-400">Verdict</div>
               <div className="mt-1 flex items-center gap-1.5 font-display text-base font-semibold">
                 {passed ? (
@@ -1117,7 +1420,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
               </div>
             </div>
 
-            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
+            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-3.5 sm:p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
               <div className="text-xs text-zinc-500 dark:text-zinc-400">Time Spent</div>
               <div className="mt-1 font-display text-2xl font-semibold text-[#09090B] dark:text-white">
                 {formatSeconds(completedSession.durationSeconds)}
@@ -1131,10 +1434,10 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
               </div>
             </div>
 
-            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Flagged for Review</div>
+            <div className="rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-3.5 sm:p-4 dark:border-white/[0.06] dark:bg-[#09090B]">
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">Marked for Review</div>
               <div className="mt-1 font-display text-2xl font-semibold text-[#09090B] dark:text-white">
-                {completedSession.records.filter((r) => r.flagged).length}
+                {markedCount}
               </div>
               <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                 Items bookmarked
@@ -1143,21 +1446,110 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
           </div>
         </div>
 
+        {/* Sticky Quick-Jump Question Navigator & Filter Bar */}
+        <div className="sticky top-14 z-20 rounded-xl border border-black/[0.08] bg-white/95 p-4 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/95 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
+                Response Breakdown
+              </h2>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                · Click any question number to jump
+              </span>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: 'all' as ReviewFilter, label: `All (${activeQuestions.length})` },
+                { id: 'incorrect' as ReviewFilter, label: `Incorrect (${incorrectCount})` },
+                { id: 'correct' as ReviewFilter, label: `Correct (${correctCount})` },
+                { id: 'marked' as ReviewFilter, label: `Marked (${markedCount})` },
+                ...(unansweredCount > 0
+                  ? [{ id: 'unanswered' as ReviewFilter, label: `Unanswered (${unansweredCount})` }]
+                  : []),
+              ].map((tab) => {
+                const isActive = reviewFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setReviewFilter(tab.id)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                      isActive
+                        ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+                        : 'border border-black/[0.08] bg-[#FAFAFA] text-zinc-600 hover:bg-zinc-100 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-400 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Color-Coded Numbered Question Tiles (1 to N) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto md:flex-wrap no-scrollbar py-1 px-0.5">
+            {activeQuestions.map((q, idx) => {
+              const rec = recordByQuestionId.get(q.id);
+              const isCorrect = !!rec?.isCorrect;
+              const isUnanswered = rec?.selectedOption === null;
+              const isMarked = !!rec?.flagged;
+              const isSelectedTile = activeReviewIndex === idx;
+
+              let tileColor =
+                'bg-zinc-100 text-zinc-600 border border-black/[0.08] dark:bg-zinc-800/80 dark:text-zinc-400 dark:border-white/[0.07]';
+              if (isCorrect) {
+                tileColor =
+                  'bg-emerald-100 text-emerald-800 border border-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50';
+              } else if (!isUnanswered) {
+                tileColor =
+                  'bg-rose-100 text-rose-800 border border-rose-400 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/50';
+              }
+
+              return (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => jumpToReviewQuestion(idx)}
+                  title={`Jump to Question ${idx + 1} (${
+                    isCorrect ? 'Correct' : isUnanswered ? 'Unanswered' : 'Incorrect'
+                  }${isMarked ? ' · Marked' : ''})`}
+                  className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-semibold flex items-center justify-center shrink-0 transition-all cursor-pointer ${tileColor} ${
+                    isSelectedTile
+                      ? 'ring-2 ring-zinc-900 dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-[#121215]'
+                      : 'hover:opacity-90'
+                  }`}
+                >
+                  <span>{idx + 1}</span>
+                  {isMarked && (
+                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-500" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Question & Option Review List (No Explanations) */}
         <div className="space-y-4">
-          <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
-            Response Breakdown
-          </h2>
-
-          {activeQuestions.map((q, idx) => {
-            const rec = completedSession.records.find((r) => r.questionId === q.id);
+          {filteredReviewQuestions.map(({ q, idx, rec }) => {
             const picked = rec?.selectedOption ?? null;
-            const isCorrect = picked === q.correctOption;
+            const normCorrect = formatOptionList(parseOptionList(q.correctOption));
+            const isCorrect = areOptionsEqual(picked, normCorrect);
+            const correctSet = new Set(parseOptionList(normCorrect));
+            const pickedSet = new Set(parseOptionList(picked));
+            const isHighlighted = activeReviewIndex === idx;
 
             return (
               <div
                 key={q.id}
-                className="rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215] space-y-4"
+                id={`review-question-${idx}`}
+                className={`scroll-mt-44 rounded-xl border bg-white p-4 sm:p-6 dark:bg-[#121215] space-y-4 transition-all ${
+                  isHighlighted
+                    ? 'border-zinc-900 ring-1 ring-zinc-900 dark:border-white dark:ring-white'
+                    : 'border-black/[0.08] dark:border-white/[0.07]'
+                }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3 text-xs dark:border-white/[0.06]">
                   <div className="flex flex-wrap items-center gap-2 text-zinc-500 dark:text-zinc-400">
@@ -1167,24 +1559,25 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                     <span aria-hidden="true">·</span>
                     <span>{q.id}</span>
                     <span aria-hidden="true">·</span>
-                    <span>
-                      Ch {q.chapterId}: {q.chapterName}
-                    </span>
-                    <span aria-hidden="true">·</span>
-                    <span>{SOURCE_LABELS[q.source].shortLabel}</span>
+                    <span>{q.chapterName}</span>
+                    {rec?.flagged && (
+                      <span className="rounded border border-amber-400 bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:border-amber-500/50 dark:bg-amber-500/20 dark:text-amber-400">
+                        Marked
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 text-xs font-medium">
                     {isCorrect ? (
-                      <span className="inline-flex items-center gap-1 text-[#09090B] dark:text-white">
+                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="h-4 w-4" />
-                        <span>Correct ({q.correctOption})</span>
+                        <span>Correct ({normCorrect})</span>
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
                         <XCircle className="h-4 w-4" />
                         <span>
-                          {picked ? `Your Choice: ${picked}` : 'Unanswered'} · Correct: {q.correctOption}
+                          {picked ? `Your Choice: ${picked}` : 'Unanswered'} · Correct: {normCorrect}
                         </span>
                       </span>
                     )}
@@ -1197,14 +1590,14 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {q.options.map((opt) => {
-                    const isOptCorrect = opt.id === q.correctOption;
-                    const isOptPicked = opt.id === picked;
+                    const isOptCorrect = correctSet.has(opt.id);
+                    const isOptPicked = pickedSet.has(opt.id);
 
                     let boxClass =
                       'border-black/[0.08] bg-[#FAFAFA] text-zinc-700 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-300';
                     if (isOptCorrect) {
                       boxClass =
-                        'border-zinc-900 bg-zinc-100/80 text-[#09090B] font-medium dark:border-white dark:bg-zinc-800/80 dark:text-white';
+                        'border-emerald-500/50 bg-emerald-500/10 text-[#09090B] font-medium dark:border-emerald-500/50 dark:bg-emerald-500/15 dark:text-white';
                     } else if (isOptPicked && !isOptCorrect) {
                       boxClass =
                         'border-rose-500/60 bg-rose-500/10 text-rose-900 dark:border-rose-500/60 dark:bg-rose-950/35 dark:text-rose-200';
@@ -1213,13 +1606,13 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                     return (
                       <div
                         key={opt.id}
-                        className={`flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 text-xs ${boxClass}`}
+                        className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-xs ${boxClass}`}
                       >
                         <div className="flex items-center gap-2.5">
                           <span
                             className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-[11px] font-semibold ${
                               isOptCorrect
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+                                ? 'bg-emerald-600 text-white'
                                 : isOptPicked
                                   ? 'bg-rose-600 text-white'
                                   : 'bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
@@ -1233,7 +1626,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
                         </div>
 
                         {isOptCorrect && (
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-[#09090B] dark:text-white" />
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                         )}
                         {isOptPicked && !isOptCorrect && (
                           <XCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
@@ -1245,6 +1638,12 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
               </div>
             );
           })}
+
+          {filteredReviewQuestions.length === 0 && (
+            <div className="rounded-xl border border-black/[0.08] bg-white py-10 text-center text-xs text-zinc-500 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-400">
+              No questions match the selected filter.
+            </div>
+          )}
         </div>
       </div>
     );

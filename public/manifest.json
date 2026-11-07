@@ -3,12 +3,18 @@
   "name": "CAxis — Precision Testing & Analytics for ICAP PRC",
   "short_name": "CAxis",
   "description": "Fast, offline-ready MCQ testing, timed exam simulation, and accuracy analytics platform for ICAP PRC students.",
-  "theme_color": "#047857",
-  "background_color": "#f8fafc",
+  "theme_color": "#09090B",
+  "background_color": "#09090B",
   "display": "standalone",
   "start_url": "/",
   "scope": "/",
   "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/pwa-192x192.png",
       "sizes": "192x192",

@@ -23,14 +23,14 @@ function extractPlainText(node: React.ReactNode): string {
 function isNumericOrCurrencyCell(text: string): boolean {
   const cleaned = text.trim();
   if (!cleaned) return false;
-  return /^(?:Rs\.?\s*|PKR\s*|\$\s*)?\(?[-+]?\d[\d,.]*(?:\s*%|\s*Billion|\s*Million|\s*units)?\)?$/i.test(
+  return /^(?:Rs\.?\s*|PKR\s*|\$\s*)?\(?[-+]?\d[\d,.]*(?:\s*%|\s*Billion|\s*Million|\s*units|\s*(?:Dr|Cr)\.?)?\)?$/i.test(
     cleaned
   );
 }
 
 function isNumericHeader(text: string): boolean {
   const cleaned = text.trim();
-  return /(?:Rs\.?|Amount|Balance|Debit|Credit|Dr\.?|Cr\.?|Units|Cost|Price|Factor|Inflow|Outflow|Variance|Return|Value|\(\%\))/i.test(
+  return /(?:Rs\.?|Amount|Balance|Debit|Credit|Dr\.?|Cr\.?|Units|Cost|Price|Factor|Inflow|Outflow|Variance|Return|Value|\(\%\)|As at|\d{4})/i.test(
     cleaned
   );
 }
@@ -42,9 +42,22 @@ export const RichContent: React.FC<RichContentProps> = ({ content, className = '
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
+          ol: ({ children }) => (
+            <ol className="list-decimal pl-6 space-y-2 my-3 text-sm sm:text-[15px] leading-relaxed marker:font-semibold marker:text-zinc-600 dark:marker:text-zinc-400">
+              {children}
+            </ol>
+          ),
+          ul: ({ children }) => (
+            <ul className="list-disc pl-6 space-y-2 my-3 text-sm sm:text-[15px] leading-relaxed marker:text-zinc-500 dark:marker:text-zinc-400">
+              {children}
+            </ul>
+          ),
+          li: ({ children }) => <li className="pl-1 leading-relaxed">{children}</li>,
           table: ({ children }) => (
-            <div className="my-4 overflow-x-auto rounded-lg border border-black/[0.08] dark:border-white/[0.08]">
-              <table className="w-full border-collapse text-left">{children}</table>
+            <div className="-mx-2 my-3.5 overflow-x-auto px-2 sm:mx-0 sm:px-0">
+              <div className="inline-block min-w-full align-middle rounded-lg border border-black/[0.08] dark:border-white/[0.08] overflow-hidden">
+                <table className="min-w-full border-collapse text-left">{children}</table>
+              </div>
             </div>
           ),
           thead: ({ children }) => (
@@ -67,7 +80,7 @@ export const RichContent: React.FC<RichContentProps> = ({ content, className = '
             const alignRight = isNumericHeader(plain);
             return (
               <th
-                className={`px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 border-r last:border-r-0 border-black/[0.06] dark:border-white/[0.06] ${
+                className={`px-2.5 py-2 sm:px-4 sm:py-2.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 border-r last:border-r-0 border-black/[0.06] dark:border-white/[0.06] whitespace-nowrap ${
                   alignRight ? 'text-right' : 'text-left'
                 }`}
               >
@@ -80,10 +93,10 @@ export const RichContent: React.FC<RichContentProps> = ({ content, className = '
             const isNum = isNumericOrCurrencyCell(plain);
             return (
               <td
-                className={`px-4 py-2.5 border-r last:border-r-0 border-black/[0.06] dark:border-white/[0.06] ${
+                className={`px-2.5 py-2 sm:px-4 sm:py-2.5 border-r last:border-r-0 border-black/[0.06] dark:border-white/[0.06] ${
                   isNum
-                    ? 'text-right font-mono text-sm tabular-nums text-[#09090B] dark:text-[#FAFAFA] whitespace-nowrap'
-                    : 'text-left text-sm text-zinc-700 dark:text-zinc-300'
+                    ? 'text-right font-mono text-xs sm:text-sm tabular-nums text-[#09090B] dark:text-[#FAFAFA] whitespace-nowrap'
+                    : 'text-left text-xs sm:text-sm text-zinc-700 dark:text-zinc-300'
                 }`}
               >
                 {children}

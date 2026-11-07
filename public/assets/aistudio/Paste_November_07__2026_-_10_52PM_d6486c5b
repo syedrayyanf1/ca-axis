@@ -1,0 +1,759 @@
+Replace the dummy questions in `prc-1` with these 50 real ICAP Self-Test questions for **PRC 1 - Chapter 4: Accruals and Prepayments**.
+
+Also, notice that some ICAP questions have multiple correct answers (e.g., `correctOption: "A,C"` or `"B,C,D"`):
+1. In the Exam Simulator, if a question's `correctOption` contains a comma (like `"A,C"`), allow the student to toggle/select multiple options (and show a small badge saying `"Select all that apply"`), and grade it as correct when their selected letters match all letters in `correctOption`.
+2. Make sure `prc-1` now displays Chapter 4 with all 50 questions below:
+
+```json
+[
+  {
+    "id": "PRC1-CH04-ST-001",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Any expense which is related to current accounting period, but not paid till year-end, rather payable in subsequent year, is termed as:",
+    "options": [
+      { "id": "A", "text": "Prepaid expense" },
+      { "id": "B", "text": "Accrued expense" },
+      { "id": "C", "text": "Unearned expense" },
+      { "id": "D", "text": "Expense paid in advance" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-002",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "R Co. had paid two annual insurance premium; first for property on 1 April 2022 Rs. 120,000 and second for plant on 1 August 2022 Rs. 180,000. How much amount shall be charged to statement of comprehensive income and statement of financial position as at 30 September 2022?",
+    "options": [
+      { "id": "A", "text": "SOCI: Rs. 65,000 | SOFP: Rs. 225,000 accrued expense" },
+      { "id": "B", "text": "SOCI: Rs. 65,000 | SOFP: Rs. 225,000 prepaid expense" },
+      { "id": "C", "text": "SOCI: Rs. 90,000 | SOFP: Rs. 210,000 accrued expense" },
+      { "id": "D", "text": "SOCI: Rs. 90,000 | SOFP: Rs. 210,000 prepaid expense" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-003",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Ali receives rent from different properties and total rent received during the year ended 30 September 2022 was Rs. 4,500,000. The balances at start and end of year are given below:\n\n| Particulars | As at 30.09.22 | As at 30.09.21 |\n| :--- | :---: | :---: |\n| Rent received in advance | Rs. 145,000 | Rs. 332,000 |\n| Rent receivable | Rs. 115,500 | Rs. 181,500 |\n\nThe amount of rental income credited to profit and loss for the year ended 30 September 2022 was:",
+    "options": [
+      { "id": "A", "text": "Rs. 4,753,000" },
+      { "id": "B", "text": "Rs. 4,247,000" },
+      { "id": "C", "text": "Rs. 4,621,000" },
+      { "id": "D", "text": "Rs. 4,500,000" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-004",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which of the following shall be recognized as current asset if its realisation or settlement is expected within one year period?",
+    "options": [
+      { "id": "A", "text": "Accrued income" },
+      { "id": "B", "text": "Unearned income" },
+      { "id": "C", "text": "Prepaid expense" },
+      { "id": "D", "text": "Accrued expense" }
+    ],
+    "correctOption": "A,C"
+  },
+  {
+    "id": "PRC1-CH04-ST-005",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Armaghan has paid annual insurance premium of Rs. 180,000 on 1 September 2022 and recorded as prepaid insurance.\n\nWhat adjusting entry shall be passed on 31 December 2022?",
+    "options": [
+      { "id": "A", "text": "Dr. Insurance expense Rs. 120,000 and Cr. Prepaid insurance Rs. 120,000" },
+      { "id": "B", "text": "Dr. Insurance expense Rs. 60,000 and Cr. Prepaid insurance Rs. 60,000" },
+      { "id": "C", "text": "Dr. Prepaid Insurance Rs. 120,000 and Cr. Insurance expense Rs. 120,000" },
+      { "id": "D", "text": "Dr. Prepaid Insurance Rs. 60,000 and Cr. Insurance expense Rs. 60,000" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-006",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Mohtashim received two-year rent amounting to Rs. 720,000 on 1 March 2022 for one of its properties. He closed his books on 30 June 2022.\n\nWhat was correct treatment to recognise the unearned rental income as at 30 June 2022 in statement of financial position?",
+    "options": [
+      { "id": "A", "text": "Recognise Rs. 600,000 as current liability" },
+      { "id": "B", "text": "Recognise Rs. 240,000 as current liability and Rs. 360,000 as non-current liability" },
+      { "id": "C", "text": "Recognise Rs. 360,000 as current liability and Rs. 240,000 as non-current liability" },
+      { "id": "D", "text": "Recognise Rs. 600,000 as non-current liability" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-007",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Following statements represent the accrual and prepayment concept:\n1. Any income which is recognized in the year of occurrence irrespective of received or not and is in arrears is termed as accrued.\n2. Any expense or income which is paid or received in advance and not related to current year shall be termed as prepayment.\n\nWhich of the following statement(s) is/are correct?",
+    "options": [
+      { "id": "A", "text": "Statement (1) only" },
+      { "id": "B", "text": "Statement (2) only" },
+      { "id": "C", "text": "Both statements" },
+      { "id": "D", "text": "None of the statements" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-008",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "As at 1 January 2022, unpaid bill of utility was Rs. 55,000; during the year ended 31 December 2022 utility expense of Rs. 478,000 was paid and as at 31 December 2022, the unpaid bill of utility was Rs. 38,700.\n\nThe closing entry of utility expense for the year ended 31 December 2022 was:",
+    "options": [
+      { "id": "A", "text": "Dr. Utility Expense Rs. 461,700 and Cr. Statement of comprehensive income Rs. 461,700" },
+      { "id": "B", "text": "Dr. Statement of comprehensive income Rs. 461,700 and Cr. Utility expense Rs. 461,700" },
+      { "id": "C", "text": "Dr. Utility Expense Rs. 494,300 and Cr. Statement of comprehensive income Rs. 494,300" },
+      { "id": "D", "text": "Dr. Statement of comprehensive income Rs. 494,300 and Cr. Utility expense Rs. 494,300" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-009",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which TWO of the following are examples of prepaid expense?",
+    "options": [
+      { "id": "A", "text": "Rent of 12 months was paid in advance" },
+      { "id": "B", "text": "Electricity bill of last month was received and paid in following accounting year" },
+      { "id": "C", "text": "Annual insurance premium was paid at the time of agreement" },
+      { "id": "D", "text": "Salaries for the month were paid in subsequent month" }
+    ],
+    "correctOption": "A,C"
+  },
+  {
+    "id": "PRC1-CH04-ST-010",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Nasir Limited pays internet usage bills for the months of January 2022 to June 2022 in subsequent month in equal amount on monthly basis. The amount paid till 30 June 2022 is Rs. 181,000.\n\nHow much amount shall be charged to statement of comprehensive income and statement of financial position as at 30 June 2022?",
+    "options": [
+      { "id": "A", "text": "SOCI: Rs. 181,000 as expense | SOFP: Rs. 36,200 accrued expense" },
+      { "id": "B", "text": "SOCI: Rs. 181,000 as expense | SOFP: Rs. 36,200 prepaid expense" },
+      { "id": "C", "text": "SOCI: Rs. 217,200 as expense | SOFP: Rs. 36,200 accrued expense" },
+      { "id": "D", "text": "SOCI: Rs. 217,200 as expense | SOFP: Rs. 36,200 prepaid expense" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-011",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "A company has introduced new policy of paying commission to its salesperson at 1% of sales, in the month following the sales. The total sales from January 2022 to November 2022 was recorded at 3,780,000 and sales for the month of December 2022 was Rs. 360,000.\n\nWhich of the following statement is correct?",
+    "options": [
+      { "id": "A", "text": "Commission expense for the year ended 31 December 2022 was Rs. 37,800" },
+      { "id": "B", "text": "Commission payable as at 31 December 2022 was Rs. 3,600" },
+      { "id": "C", "text": "Commission payable as at 31 December 2022 should be recorded as non-current liability" },
+      { "id": "D", "text": "Commission of Rs. 37,800 was recorded as income for the year" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-012",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Nisar deposited Rs. 150,000 in deposit account at 12% p.a. on 1 July 2022. Interest on deposit shall be received on 30 June each year. Nisar closes its books on 31 December each year.\n\nWhich of the following statement is correct in relation to above statement on 31 December 2022?",
+    "options": [
+      { "id": "A", "text": "Interest income Rs. 18,000 and accrued interest income Rs. 9,000" },
+      { "id": "B", "text": "Interest income Rs. 18,000 and accrued interest income Rs. 4,500" },
+      { "id": "C", "text": "Interest income Rs. 9,000 and accrued interest income Rs. 9,000" },
+      { "id": "D", "text": "Interest income Rs. 9,000 and accrued interest income Rs. 4,500" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-013",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "At reporting date, the accrued expense was identified and accountant make adjustment by subtracting the accrued expense from relevant expense and showed prepaid expense in statement of financial position.\n\nWhich of the statement(s) is/are true in relation to above error?",
+    "options": [
+      { "id": "A", "text": "The profit for the year was understated" },
+      { "id": "B", "text": "The profit for the year was overstated" },
+      { "id": "C", "text": "The net assets were understated" },
+      { "id": "D", "text": "The net assets were overstated" }
+    ],
+    "correctOption": "B,D"
+  },
+  {
+    "id": "PRC1-CH04-ST-014",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Jamshaid paid maintenance expense on quarterly basis in arrears. It had paid first bill on 28 February 2022 Rs. 75,000; second bill on 31 May 2022 Rs. 65,000 and third bill on 31 August 2022 Rs. 66,000. Jamshaid closes its books on 30 June 2022.\n\nWhich of the following statement is true?",
+    "options": [
+      { "id": "A", "text": "Charge Rs. 140,000 as expense and record Rs. 66,000 as prepaid expense" },
+      { "id": "B", "text": "Charge Rs. 162,000 as expense and record Rs. 44,000 as prepaid expense" },
+      { "id": "C", "text": "Charge Rs. 184,000 as expense and record Rs. 22,000 as prepaid expense" },
+      { "id": "D", "text": "Charge Rs. 162,000 as expense and record Rs. 22,000 as accrued expense" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-015",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "A business had balance of Prepaid Insurance as at 1 January 2022 of Rs. 65,000. On 1 May 2022, it paid annual insurance premium of Rs. 150,000 for year ended 30 April 2023.\n\nHow much amount shall be charged to statement of comprehensive income and statement of financial position as at 31 December 2022?",
+    "options": [
+      { "id": "A", "text": "SOCI: Rs. 100,000 | SOFP: Rs. 115,000 accrued expense" },
+      { "id": "B", "text": "SOCI: Rs. 165,000 | SOFP: Rs. 50,000 accrued expense" },
+      { "id": "C", "text": "SOCI: Rs. 100,000 | SOFP: Rs. 115,000 prepaid expense" },
+      { "id": "D", "text": "SOCI: Rs. 165,000 | SOFP: Rs. 50,000 prepaid expense" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-016",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "At start of year, accrued expense was Rs. 56,000 and end of year it was Rs. 60,000. The expense of Rs. 500,000 was charged in statement of comprehensive income.\n\nHow much amount was paid during the year?",
+    "options": [
+      { "id": "A", "text": "Rs. 496,000" },
+      { "id": "B", "text": "Rs. 500,000" },
+      { "id": "C", "text": "Rs. 504,000" },
+      { "id": "D", "text": "Rs. 616,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-ST-017",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "An accrued expense shall be recognized as:",
+    "options": [
+      { "id": "A", "text": "Increase in expense and current asset" },
+      { "id": "B", "text": "Increase in expense and current liability" },
+      { "id": "C", "text": "Decrease in expense and current asset" },
+      { "id": "D", "text": "Decrease in expense and current liability" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-018",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which of the following statement(s) is/are false?",
+    "options": [
+      { "id": "A", "text": "Recording accrued expense increases profit" },
+      { "id": "B", "text": "Recording accrued income increases profit" },
+      { "id": "C", "text": "Unearned income is current liability" },
+      { "id": "D", "text": "Prepaid expense is current liability" }
+    ],
+    "correctOption": "A,D"
+  },
+  {
+    "id": "PRC1-CH04-ST-019",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Following data was extracted from the books of Najam Limited for the year ended 30 June 2022:\n\n| Particulars | Amount |\n| :--- | :---: |\n| Accrued income as at 30 June 2022 | Rs. 41,500 |\n| Income received during the year 30 June 2022 | Rs. 478,600 |\n| Income credited to profit and loss for the year | Rs. 496,300 |\n\nWhat was the balance as at 30 June 2021?",
+    "options": [
+      { "id": "A", "text": "Unearned income Rs. 23,800" },
+      { "id": "B", "text": "Accrued income Rs. 23,800" },
+      { "id": "C", "text": "Unearned income Rs. 59,200" },
+      { "id": "D", "text": "Accrued income Rs. 59,200" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-020",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which of the following are examples of accrued expense?",
+    "options": [
+      { "id": "A", "text": "Annual rental was paid at the time of an agreement" },
+      { "id": "B", "text": "Expenses were paid in arrears" },
+      { "id": "C", "text": "Salaries were paid to employees in subsequent month" },
+      { "id": "D", "text": "Interest on loan taken from bank and paid on annual basis" }
+    ],
+    "correctOption": "B,C,D"
+  },
+  {
+    "id": "PRC1-CH04-ST-021",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Ninja Corporation entered into contract with Rashid on 1 September 2022 to provide annual maintenance services. Annual fee of Rs. 360,000 was received in advance and recorded as unearned income.\n\nWhat adjusting entry shall be passed in the books of Ninja Corporation as at 31 December 2022?",
+    "options": [
+      { "id": "A", "text": "Dr. Maintenance income Rs. 120,000 and Cr. Unearned income Rs. 120,000" },
+      { "id": "B", "text": "Dr. Unearned income Rs. 120,000 and Cr. Maintenance income Rs. 120,000" },
+      { "id": "C", "text": "Dr. Maintenance income Rs. 240,000 and Cr. Unearned income Rs. 240,000" },
+      { "id": "D", "text": "Dr. Unearned income Rs. 240,000 and Cr. Maintenance income Rs. 240,000" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-022",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which of the following shall be recognized as current liability if its realisation or settlement is due within one year period?",
+    "options": [
+      { "id": "A", "text": "Accrued income" },
+      { "id": "B", "text": "Unearned income" },
+      { "id": "C", "text": "Accrued expense" },
+      { "id": "D", "text": "Prepaid expense" }
+    ],
+    "correctOption": "B,C"
+  },
+  {
+    "id": "PRC1-CH04-ST-023",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Newson dealers hired property and also sub-let part of this property to other tenant. The balances in respect of rent of this property are given below:\n\n| Particulars | 31 December 2021 | 31 December 2022 |\n| :--- | :---: | :---: |\n| Property Main | Rs. 140,000 Cr. | Rs. 165,000 Cr. |\n| Property Sub-let | Rs. 60,000 Cr. | Rs. 10,000 Dr. |\n\nHow much net amount shall be charged to rent expense (net) for the year ended 31 December 2022, assuming that rent of Rs. 750,000 was paid and Rs. 300,000 was received during the year?",
+    "options": [
+      { "id": "A", "text": "Rs. 405,000" },
+      { "id": "B", "text": "Rs. 775,000" },
+      { "id": "C", "text": "Rs. 495,000" },
+      { "id": "D", "text": "Rs. 1,075,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-ST-024",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Nishter Enterprises sub-let its block of building and received following rental income in advance on quarterly basis:\n\n| Date | Amount |\n| :--- | :---: |\n| 1 May 2021 | Rs. 45,000 |\n| 1 August 2021 | Rs. 45,000 |\n| 1 November 2021 | Rs. 45,000 |\n| 1 February 2022 | Rs. 45,000 |\n| 1 May 2022 | Rs. 48,000 |\n\nWhich of the following TWO statements are correct?",
+    "options": [
+      { "id": "A", "text": "Rental income for the year ended 30 June 2022 was Rs. 182,000" },
+      { "id": "B", "text": "Accrued rental income as at 30 June 2022 was Rs. 48,000" },
+      { "id": "C", "text": "Unearned rental income as at 1 July 2021 was Rs. 15,000" },
+      { "id": "D", "text": "Unearned rental income as at 30 June 2022 was Rs. 48,000" }
+    ],
+    "correctOption": "A,C"
+  },
+  {
+    "id": "PRC1-CH04-ST-025",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Any expense paid in current year but relating to following year, is an example of:",
+    "options": [
+      { "id": "A", "text": "Prepaid expense" },
+      { "id": "B", "text": "Accrued expense" },
+      { "id": "C", "text": "Expense in arrear" },
+      { "id": "D", "text": "Expense payable" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-ST-026",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Opening balance for accrued utility expense at 1 July 2021 was Rs. 12,500. Following payments were made during the year ended 30 June 2022:\n- 1 September 2021: Rs. 36,800 (period covering from June 2021 to August 2021)\n- 1 January 2022: Rs. 55,600 (period covering from September 2021 to December 2021)\n- 1 May 2022: Rs. 33,600 (period covering from January 2022 to April 2022)\n- 1 July 2022: Rs. 18,600 (period covering from May 2022 to June 2022)\n\nHow much amount shall be charged as expense for the year ended 30 June 2022 and in statement of financial position as at 30 June 2022?",
+    "options": [
+      { "id": "A", "text": "Rs. 130,300 as expense and Rs. 12,500 as current asset" },
+      { "id": "B", "text": "Rs. 132,100 as expense and Rs. 18,600 as current liability" },
+      { "id": "C", "text": "Rs. 121,700 as expense and Rs. 18,600 as current asset" },
+      { "id": "D", "text": "Rs. 121,700 as expense and Rs. 12,500 as current liability" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-027",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Arvind paid its vendors for repair services after one month from invoice date. As at 1 April 2022 repair bill of Rs. 32,200 was outstanding. During the quarter ended 30 June 2022 Arvind paid Rs. 144,600 against repair bills including Rs. 30,000 from opening balance. On 31 July Arvind received bill of repairs Rs. 27,300 representing period from 16 June to 15 July 2022.\n\nHow much amount shall be charged as expense for quarter ended 30 June 2022?",
+    "options": [
+      { "id": "A", "text": "Rs. 139,700" },
+      { "id": "B", "text": "Rs. 128,250" },
+      { "id": "C", "text": "Rs. 126,050" },
+      { "id": "D", "text": "Rs. 96,050" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-028",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "As at start of year, repair bill of Rs. 28,700 was outstanding. During the year an amount of Rs. 222,000 was paid for repairs, including Rs. 28,700. At end of year, no bill was pending.\n\nWhich of the following statement is true?",
+    "options": [
+      { "id": "A", "text": "The charge for the year was Rs. 222,000" },
+      { "id": "B", "text": "The charge for the year was Rs. 250,700" },
+      { "id": "C", "text": "The charge for the year was Rs. 193,300" },
+      { "id": "D", "text": "Current liability at end of year was Rs. 28,700" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-029",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Journal entry to record the accrued expense at year-end is:",
+    "options": [
+      { "id": "A", "text": "Dr. Expense | Cr. Prepaid expense" },
+      { "id": "B", "text": "Dr. Prepaid expense | Cr. Expense" },
+      { "id": "C", "text": "Dr. Expense | Cr. Accrued expense" },
+      { "id": "D", "text": "Dr. Accrued expense | Cr. Expense" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-030",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Consider the following accounting treatment, and identify which of the following TWO statements are correct?",
+    "options": [
+      { "id": "A", "text": "Rent received in advance was recorded as current liability" },
+      { "id": "B", "text": "Salaries unpaid at year end was recorded as current liability" },
+      { "id": "C", "text": "Accrued interest expense was recorded as current asset" },
+      { "id": "D", "text": "Prepaid expense was recorded as non-current asset" }
+    ],
+    "correctOption": "A,B"
+  },
+  {
+    "id": "PRC1-CH04-ST-031",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "A prepaid expense adjustment is recognized as:",
+    "options": [
+      { "id": "A", "text": "Increase in expense and increase in current asset" },
+      { "id": "B", "text": "Increase in expense and decrease in current liability" },
+      { "id": "C", "text": "Decrease in expense and increase in current asset" },
+      { "id": "D", "text": "Decrease in expense and decrease current liability" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-032",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "While finalising the accounts, Mujahid overlooked to record accrued expense of Rs. 37,800 and accrued income of Rs. 16,300.\n\nWhat was impact on profit as result of above omission?",
+    "options": [
+      { "id": "A", "text": "Profit for the year was understated by Rs. 21,500" },
+      { "id": "B", "text": "Profit for the year was overstated by Rs. 21,500" },
+      { "id": "C", "text": "Profit for the year was understated by Rs. 54,100" },
+      { "id": "D", "text": "Profit for the year was overstated by Rs. 54,100" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-033",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "If accrued expense was wrongly recorded as accrued income at end of year, then what will be impact on profit of this error?",
+    "options": [
+      { "id": "A", "text": "Profit was understated by amount of error" },
+      { "id": "B", "text": "Profit was understated by double the amount of error" },
+      { "id": "C", "text": "Profit was overstated by amount of error" },
+      { "id": "D", "text": "Profit was overstated by double amount" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-034",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Nasir had consumables as at 1 January 2022 of Rs. 16,000 and bill of consumables were unpaid as at 1 January 2022 of Rs. 22,500. During the year ended 31 December 2022 Nasir had paid Rs. 185,000 against purchase of consumables. At 31 December 2022, a bill of consumables of Rs. 16,800 was unpaid and unused consumables were Rs. 22,780.\n\nThe amount of expense charged for the year ended 31 December 2022 was?",
+    "options": [
+      { "id": "A", "text": "Rs. 183,920" },
+      { "id": "B", "text": "Rs. 172,520" },
+      { "id": "C", "text": "Rs. 186,080" },
+      { "id": "D", "text": "Rs. 197,480" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-035",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "On 1 July 2022, annual insurance premium of Rs. 150,000 was paid in advance and recorded as expense. What adjusting entry shall be passed at 30 September 2022?",
+    "options": [
+      { "id": "A", "text": "Dr. Insurance premium Rs. 37,500 and Cr. Prepaid expense Rs. 37,500" },
+      { "id": "B", "text": "Dr. Prepaid expense Rs. 37,500 and Cr. Insurance premium Rs. 37,500" },
+      { "id": "C", "text": "Dr. Insurance premium Rs. 112,500 and Cr. Prepaid expense Rs. 112,500" },
+      { "id": "D", "text": "Dr. Prepaid expense Rs. 112,500 and Cr. Insurance premium Rs. 112,500" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-036",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Balances of accrued internet expense and prepaid internet expense as at 30 June 2022 were Rs. 19,800 and Rs. 23,300 respectively. During the year ended 30 June 2022, payment of Rs. 196,850 were made for internet expense. The internet expense of Rs. 211,200 was charged to statement of profit and loss.\n\nIf the balance of accrued internet expense was Rs. 16,600 as at 30 June 2021, then the balance of prepaid internet expense as at 30 June 2021 was:",
+    "options": [
+      { "id": "A", "text": "Rs. 5,750" },
+      { "id": "B", "text": "Rs. 27,450" },
+      { "id": "C", "text": "Rs. 34,450" },
+      { "id": "D", "text": "Rs. 10,850" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-037",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Meekal Enterprises hired property on lease on 1 September 2021 and paid rent for 12 months at Rs. 50,000 per month in advance. The part of property was sub-let to Anjum Associates on 1 February 2022 and received rent of 8 months at Rs. 30,000 per month in advance.\n\nHow much amount shall be recognised in statement of financial position as at 30 June 2022?",
+    "options": [
+      { "id": "A", "text": "Prepaid expense of Rs. 100,000 and unearned income of Rs. 90,000" },
+      { "id": "B", "text": "Unearned income of Rs. 100,000 and prepaid expense of Rs. 90,000" },
+      { "id": "C", "text": "Prepaid expense of Rs. 500,000 and unearned income of Rs. 150,000" },
+      { "id": "D", "text": "Unearned income of Rs. 500,000 and prepaid expense of Rs. 150,000" }
+    ],
+    "correctOption": "A,B"
+  },
+  {
+    "id": "PRC1-CH04-ST-038",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Opening and closing accrued salaries were Rs. 22,500 and Rs. 25,000 respectively and during the current year, salaries of Rs. 312,500 were paid. Which of the following statement(s) is/are correct?",
+    "options": [
+      { "id": "A", "text": "Salaries expense for the current year Rs. 310,000 will be shown in statement of comprehensive income" },
+      { "id": "B", "text": "Salaries expense for the current year Rs. 315,000 will be shown in statement of comprehensive income" },
+      { "id": "C", "text": "Accrued salaries expense shall be shown as current asset in statement of financial position" },
+      { "id": "D", "text": "Accrued salaries expense shall be shown as current liability in statement of financial position" }
+    ],
+    "correctOption": "B,D"
+  },
+  {
+    "id": "PRC1-CH04-ST-039",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which of the following statement is correct in relation to Accrual concept?",
+    "options": [
+      { "id": "A", "text": "If cash is received in current year for expense to be incurred in next year, income should be recorded when it was received" },
+      { "id": "B", "text": "A person was hired at salary of Rs. 50,000 with salary payable on 5th of month following the month of salary, he worked for 7 months in current year but only 6 month salary was paid with one salary shall be paid next year. Expense of 6 months should be recognized." },
+      { "id": "C", "text": "Rent expense of Rs. 48,000 was paid for three-months and one month is related to next accounting year. The rent expense of Rs. 48,000 shall be recorded in current year statement of comprehensive income" },
+      { "id": "D", "text": "Rent expense of Rs. 48,000 was paid for three-months and one month is related to next accounting year. The rent expense of Rs. 36,000 shall be recorded in current year statement of comprehensive income and Rs. 12,000 shall be shown in statement of financial position as current asset" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-040",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "If accrued expense was wrongly recorded as prepaid expense at end of year, then what will be impact on profit of this error?",
+    "options": [
+      { "id": "A", "text": "Profit was understated by amount of error" },
+      { "id": "B", "text": "Profit was understated by double the amount of error" },
+      { "id": "C", "text": "Profit was overstated by amount of error" },
+      { "id": "D", "text": "Profit was overstated by double amount" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-041",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "The following data was related to Anjum Limited for the year ended 30 June 2022:\n\n| Particulars | Amount |\n| :--- | :---: |\n| Accrued expense as at 1 July 2021 | Rs. 16,500 |\n| Expense charged during the year 30 June 2022 | Rs. 125,000 |\n| Prepaid expense as at 30 June 2022 | Rs. 19,600 |\n\nExpense paid during the year ended 30 June 2022 was?",
+    "options": [
+      { "id": "A", "text": "Rs. 88,900" },
+      { "id": "B", "text": "Rs. 121,900" },
+      { "id": "C", "text": "Rs. 128,100" },
+      { "id": "D", "text": "Rs. 161,100" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-042",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which of the following are examples of unearned income?",
+    "options": [
+      { "id": "A", "text": "Insurance premium paid in advance" },
+      { "id": "B", "text": "Sub-letting property where rent is in advance" },
+      { "id": "C", "text": "Hiring of property where rent is in advance" },
+      { "id": "D", "text": "Fee received at the time of service contract" }
+    ],
+    "correctOption": "B,D"
+  },
+  {
+    "id": "PRC1-CH04-ST-043",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "At the time of making adjustments, the accountant omitted to adjust accrued income of Rs. 44,500 and unearned income of Rs. 36,500.\n\nAfter making above adjustments, the net profit for the year will:",
+    "options": [
+      { "id": "A", "text": "Increase by Rs. 8,000" },
+      { "id": "B", "text": "Decrease by Rs. 8,000" },
+      { "id": "C", "text": "Increase by Rs. 81,000" },
+      { "id": "D", "text": "Decrease by Rs. 81,000" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-ST-044",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "MPD was engaged in rental business and during the year ended 31 March 2022 he received Rs. 720,000 as rent from different tenants. The books showed the following balances at start and end of year:\n\n| Particulars | 31 March 2021 | 31 March 2022 |\n| :--- | :---: | :---: |\n| Rent in arrear | Rs. 80,000 | Rs. 45,000 |\n| Rent in advance | Rs. 50,000 | Rs. 100,000 |\n\nHow much amount shall be credited to rental income for the year ended 31 March 2022?",
+    "options": [
+      { "id": "A", "text": "Rs. 745,000" },
+      { "id": "B", "text": "Rs. 695,000" },
+      { "id": "C", "text": "Rs. 635,000" },
+      { "id": "D", "text": "Rs. 805,000" }
+    ],
+    "correctOption": "C"
+  },
+  {
+    "id": "PRC1-CH04-ST-045",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "The adjustment of accrued income impacts elements of financial statements as:",
+    "options": [
+      { "id": "A", "text": "Increase in income and decrease in current liability" },
+      { "id": "B", "text": "Increase in income and increase in current asset" },
+      { "id": "C", "text": "Decrease in income and decrease in current asset" },
+      { "id": "D", "text": "Decrease in income and increase in current liability" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-046",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "What entry shall be passed to record the accrued income at year-end?",
+    "options": [
+      { "id": "A", "text": "Dr. Accrued income and Cr. Income" },
+      { "id": "B", "text": "Dr. Unearned income and Cr. Income" },
+      { "id": "C", "text": "Dr. Income and Cr. Accrued income" },
+      { "id": "D", "text": "Dr. Income and Cr. Unearned income" }
+    ],
+    "correctOption": "A"
+  },
+  {
+    "id": "PRC1-CH04-ST-047",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Insurance premium (annual) was agreed with insurance company at Rs. 60,000 payable in advance on quarterly basis; the first payment was made at 1 November 2020. The annual insurance premium was increased by 10% w.e.f. 1 November 2021. What amount shall be shown in statement of financial position as at 30 June 2022?",
+    "options": [
+      { "id": "A", "text": "Rs. 11,000 accrued expense" },
+      { "id": "B", "text": "Rs. 5,500 prepaid expense" },
+      { "id": "C", "text": "Rs. 11,000 prepaid expense" },
+      { "id": "D", "text": "Rs. 5,500 accrued expense" }
+    ],
+    "correctOption": "B"
+  },
+  {
+    "id": "PRC1-CH04-ST-048",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "Which TWO of the following are an example of accrued income?",
+    "options": [
+      { "id": "A", "text": "Rental income for 6 months received in advance" },
+      { "id": "B", "text": "Deposit an amount in fixed deposit, interest shall be receivable at each year end" },
+      { "id": "C", "text": "Bill of maintenance was issued to customer after providing service" },
+      { "id": "D", "text": "50% payment was received in advance for supply of goods" }
+    ],
+    "correctOption": "B,C"
+  },
+  {
+    "id": "PRC1-CH04-ST-049",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "The accrued income of Rs. 36,000 was wrongly recorded as Rs. 63,000 and unearned income of Rs. 63,000 was wrongly recorded as Rs. 36,000 at year end.\n\nWhat was the impact on net profit for the year?",
+    "options": [
+      { "id": "A", "text": "No effect" },
+      { "id": "B", "text": "Profit was understated by Rs. 27,000" },
+      { "id": "C", "text": "Profit was overstated by Rs. 27,000" },
+      { "id": "D", "text": "Profit was overstated by Rs. 54,000" }
+    ],
+    "correctOption": "D"
+  },
+  {
+    "id": "PRC1-CH04-ST-050",
+    "subjectId": "prc-1",
+    "chapterId": 4,
+    "chapterName": "Chapter 4: Accruals and Prepayments",
+    "source": "self-test",
+    "questionText": "One year maintenance contract fee was received from Khan Traders on 1 August 2022 in advance. Company closes its books on 31 December each year.\n\nWhich of the following term is NOT related to above statement?",
+    "options": [
+      { "id": "A", "text": "Unearned income" },
+      { "id": "B", "text": "Income received in advance" },
+      { "id": "C", "text": "Accrued income" },
+      { "id": "D", "text": "Advance income" }
+    ],
+    "correctOption": "C"
+  }
+]

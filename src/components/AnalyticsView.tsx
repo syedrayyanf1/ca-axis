@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   CartesianGrid,
   Line,
@@ -10,7 +10,6 @@ import {
 } from 'recharts';
 import {
   AlertCircle,
-  ArrowUpRight,
   CheckCircle2,
   RotateCcw,
   Target,
@@ -23,7 +22,8 @@ import {
   QuestionSource,
   SubjectId,
 } from '../types';
-import { SOURCE_LABELS, SUBJECTS } from '../data/subjects';
+import { SUBJECTS } from '../data/subjects';
+import { AnalyticsSkeleton } from './UIFeedback';
 
 interface AnalyticsViewProps {
   sessions: ExamSessionRecord[];
@@ -42,6 +42,26 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<SubjectId>('prc-1');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [barsReady, setBarsReady] = useState(false);
+
+  useEffect(() => {
+    setBarsReady(false);
+    const raf = window.requestAnimationFrame(() => {
+      const timer = window.setTimeout(() => setBarsReady(true), 40);
+      return () => window.clearTimeout(timer);
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [selectedSubjectId, isFilterLoading]);
+
+  const handleSelectSubject = (subjId: SubjectId) => {
+    if (subjId === selectedSubjectId) return;
+    setSelectedSubjectId(subjId);
+    setIsFilterLoading(true);
+    window.setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 220);
+  };
 
   const currentSubject = useMemo(
     () => SUBJECTS.find((s) => s.id === selectedSubjectId) || SUBJECTS[0],
@@ -89,40 +109,6 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       .sort((a, b) => b.mistakeCount - a.mistakeCount || a.accuracy - b.accuracy);
   }, [chapterBreakdown]);
 
-  // Source-wise Accuracy Breakdown (Self-Test vs APQ vs Practice Set)
-  const sourceBreakdown = useMemo(() => {
-    const sources: QuestionSource[] = ['self-test', 'apq', 'practice-set'];
-    return sources.map((src) => {
-      const srcQuestions = subjectQuestions.filter((q) => q.source === src);
-      let attempts = 0;
-      let correct = 0;
-      let mistakes = 0;
-
-      srcQuestions.forEach((q) => {
-        const stat = mastery[q.id];
-        if (stat) {
-          attempts += stat.attempts;
-          correct += stat.correct;
-          mistakes += Math.max(0, stat.attempts - stat.correct);
-        }
-      });
-
-      const accuracy = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
-
-      return {
-        source: src,
-        label: SOURCE_LABELS[src].label,
-        shortLabel: SOURCE_LABELS[src].shortLabel,
-        description: SOURCE_LABELS[src].description,
-        totalBank: srcQuestions.length,
-        attempts,
-        correct,
-        mistakes,
-        accuracy,
-      };
-    });
-  }, [subjectQuestions, mastery]);
-
   // Learning curve trend across sessions
   const learningCurveData = useMemo(() => {
     const chronological = [...sessions]
@@ -149,7 +135,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             Analytics
           </h1>
           <p className="mt-1 text-sm text-[#71717A] dark:text-[#A1A1AA]">
-            Chapter-level accuracy diagnostics, learning curve trend, and source breakdown.
+            Chapter-level accuracy diagnostics and learning curve trend across the question bank.
           </p>
         </div>
 
@@ -198,8 +184,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             <button
               key={subj.id}
               type="button"
-              onClick={() => setSelectedSubjectId(subj.id)}
-              className={`flex-1 min-w-[160px] rounded-md px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
+              onClick={() => handleSelectSubject(subj.id)}
+              className={`flex-1 min-w-[160px] rounded-md px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                 active
                   ? 'bg-white text-[#09090B] shadow-2xs dark:bg-zinc-800 dark:text-white'
                   : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -211,10 +197,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         })}
       </div>
 
-      {/* Top Row: Learning Curve Line Graph + Weak Areas */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      {isFilterLoading ? (
+        <AnalyticsSkeleton />
+      ) : (
+        <>
+          {/* Top Row: Learning Curve Line Graph + Weak Areas */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 animate-view-enter">
         {/* Learning Curve Trend (7 cols) */}
-        <div className="lg:col-span-7 rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215]">
+        <div className="lg:col-span-7 rounded-xl border border-black/[0.08] bg-white/80 p-6 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white flex items-center gap-2">
@@ -288,7 +278,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         </div>
 
         {/* Weak Areas & Mistake Count Card (5 cols) */}
-        <div className="lg:col-span-5 rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215] flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-xl border border-black/[0.08] bg-white/80 p-6 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75 flex flex-col justify-between">
           <div>
             <div className="mb-4">
               <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
@@ -344,7 +334,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       </div>
 
       {/* Chapter-by-Chapter Accuracy Breakdown List */}
-      <div className="rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215]">
+      <div className="rounded-xl border border-black/[0.08] bg-white/80 p-6 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-black/[0.06] dark:border-white/[0.06]">
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white flex items-center gap-2">
@@ -392,8 +382,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   <div className="flex items-center gap-3 min-w-[210px] justify-end">
                     <div className="w-24 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${barColor}`}
-                        style={{ width: `${hasAttempts ? Math.max(6, ch.accuracy) : 0}%` }}
+                        className={`h-full rounded-full transition-all duration-700 ease-out ${barColor}`}
+                        style={{
+                          width: `${barsReady && hasAttempts ? Math.max(6, ch.accuracy) : 0}%`,
+                        }}
                       />
                     </div>
 
@@ -415,63 +407,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           })}
         </div>
       </div>
-
-      {/* Source-Wise Accuracy Breakdown */}
-      <div className="space-y-3">
-        <h2 className="font-display text-base font-semibold tracking-tight text-[#09090B] dark:text-white">
-          Source-Wise Accuracy Breakdown
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {sourceBreakdown.map((item) => {
-            const hasAttempts = item.attempts > 0;
-            return (
-              <div
-                key={item.source}
-                className="flex flex-col justify-between rounded-xl border border-black/[0.08] bg-white p-5 dark:border-white/[0.07] dark:bg-[#121215]"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-[#09090B] dark:text-white">
-                      {item.label}
-                    </span>
-                    <span className="text-zinc-500 dark:text-zinc-400">
-                      {item.totalBank} MCQs
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    {item.description}
-                  </p>
-
-                  <div className="mt-4 flex items-baseline justify-between">
-                    <div className="font-display text-2xl font-semibold tracking-tight text-[#09090B] dark:text-white">
-                      {item.accuracy}% Accuracy
-                    </div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {item.attempts} Attempted
-                    </div>
-                  </div>
-
-                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                    <div
-                      className="h-full rounded-full bg-[#6366F1] transition-all"
-                      style={{ width: `${hasAttempts ? Math.min(100, item.accuracy) : 0}%` }}
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onLaunchTargetedDrill(selectedSubjectId, undefined, item.source)}
-                  className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg border border-black/[0.08] bg-[#FAFAFA] px-3 py-2 text-xs font-medium text-[#09090B] transition-colors hover:bg-zinc-100 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
-                >
-                  <span>Practice {item.shortLabel}</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };

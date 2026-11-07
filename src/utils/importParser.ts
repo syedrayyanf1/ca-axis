@@ -1,4 +1,11 @@
-import { OptionId, Question, QuestionSource, SubjectId } from '../types';
+import {
+  formatOptionList,
+  OptionId,
+  parseOptionList,
+  Question,
+  QuestionSource,
+  SubjectId,
+} from '../types';
 
 export interface ParseResult {
   questions: Question[];
@@ -9,54 +16,53 @@ const VALID_SUBJECTS: SubjectId[] = ['prc-1', 'prc-2', 'prc-3-v1', 'prc-3-v2'];
 const VALID_SOURCES: QuestionSource[] = ['self-test', 'apq', 'practice-set'];
 const VALID_OPTIONS: OptionId[] = ['A', 'B', 'C', 'D'];
 
+function normalizeCorrectOption(raw: unknown): string {
+  if (typeof raw !== 'string') return 'A';
+  const parsed = parseOptionList(raw);
+  return parsed.length > 0 ? formatOptionList(parsed) : 'A';
+}
+
+export const SAMPLE_JSON_TEMPLATE = JSON.stringify(
+  [
+    {
+      id: 'PRC1-CH01-001',
+      subjectId: 'prc-1',
+      chapterId: 1,
+      chapterName: 'Chapter 1: Accounting Fundamentals',
+      questionText: 'Markdown + $LaTeX$ supported question text here',
+      options: [
+        { id: 'A', text: 'Option A text' },
+        { id: 'B', text: 'Option B text' },
+        { id: 'C', text: 'Option C text' },
+        { id: 'D', text: 'Option D text' },
+      ],
+      correctOption: 'B',
+    },
+  ],
+  null,
+  2
+);
+
 export const SAMPLE_MARKDOWN_TEMPLATE = `---
-id: PRC1-CH03-ST-099
+id: PRC1-CH01-001
 subjectId: prc-1
-chapterId: 3
-chapterName: Bank Reconciliation Statements
-source: self-test
+chapterId: 1
+chapterName: Chapter 1: Accounting Fundamentals
 correctOption: B
 ---
-The Cash Book of **Chenab Traders** shows a debit balance of **Rs. 125,000** on 30 June 2026. On the same date, the following items were noted:
+Markdown + $LaTeX$ supported question text here
 
-| Reconciliation Item | Amount (Rs.) |
-| :--- | ---: |
-| Cheques issued but not yet presented for payment | 38,000 |
-| Dividend collected directly by the bank | 12,000 |
-| Cheques deposited but not yet credited by bank | 29,000 |
+A) Option A text
+B) Option B text
+C) Option C text
+D) Option D text`;
 
-What is the balance as per the **Bank Statement** on 30 June 2026?
-
-A) Rs. 134,000 Favourable
-B) Rs. 146,000 Favourable
-C) Rs. 104,000 Favourable
-D) Rs. 128,000 Overdraft
-
-===
-
----
-id: PRC2-CH02-APQ-099
-subjectId: prc-2
-chapterId: 2
-chapterName: Financial Mathematics: Compounding, Annuities & NPV
-source: apq
-correctOption: A
----
-If a sum of **Rs. 400,000** is invested at a nominal interest rate of **$16\\%$ per annum compounded quarterly**, what is the **Effective Annual Rate (EAR)** using:
-
-$$\\text{EAR} = \\left(1 + \\frac{r}{m}\\right)^m - 1$$
-
-A) 16.99%
-B) 16.64%
-C) 16.00%
-D) 17.25%`;
-
-export const SAMPLE_CSV_TEMPLATE = `id,subjectId,chapterId,chapterName,source,questionText,optionA,optionB,optionC,optionD,correctOption
-"PRC1-CH01-PS-088","prc-1",1,"Accounting Fundamentals & Double Entry","practice-set","If total assets increase by **Rs. 180,000** and total liabilities decrease by **Rs. 40,000** during the period, what is the net change in Owner's Equity?","Increase of Rs. 220,000","Increase of Rs. 140,000","Decrease of Rs. 220,000","Increase of Rs. 180,000","A"`;
+export const SAMPLE_CSV_TEMPLATE = `id,subjectId,chapterId,chapterName,questionText,optionA,optionB,optionC,optionD,correctOption
+"PRC1-CH01-001","prc-1",1,"Chapter 1: Accounting Fundamentals","Markdown + $LaTeX$ supported question text here","Option A text","Option B text","Option C text","Option D text","B"`;
 
 export function parseMarkdownQuestionBank(
   rawText: string,
-  defaults: { subjectId: SubjectId; chapterId: number; chapterName: string; source: QuestionSource }
+  defaults: { subjectId: SubjectId; chapterId: number; chapterName: string; source?: QuestionSource }
 ): ParseResult {
   const questions: Question[] = [];
   const errors: string[] = [];
@@ -96,9 +102,9 @@ export function parseMarkdownQuestionBank(
       body = body.slice(0, expMatch.index).trim();
     }
 
-    // Extract Answer if inline
+    // Extract Answer if inline (supports single "B" or multi "A,C")
     let inlineAnswer: string | undefined;
-    const ansMatch = body.match(/\n(?:Answer|Correct(?:\s*Option)?):\s*([A-D])\s*$/i);
+    const ansMatch = body.match(/\n(?:Answer|Correct(?:\s*Option)?):\s*([A-D](?:\s*,\s*[A-D])*)\s*$/i);
     if (ansMatch && ansMatch.index !== undefined) {
       inlineAnswer = ansMatch[1].toUpperCase();
       body = body.slice(0, ansMatch.index).trim();
@@ -129,15 +135,12 @@ export function parseMarkdownQuestionBank(
       : defaults.subjectId) as SubjectId;
     const chapterId = meta.chapterId ? Number(meta.chapterId) || defaults.chapterId : defaults.chapterId;
     const chapterName = meta.chapterName || defaults.chapterName;
-    const source = (VALID_SOURCES.includes(meta.source as QuestionSource)
-      ? meta.source
-      : defaults.source) as QuestionSource;
-    const correctRaw = (meta.correctOption || inlineAnswer || 'A').toUpperCase();
-    const correctOption = (VALID_OPTIONS.includes(correctRaw as OptionId) ? correctRaw : 'A') as OptionId;
+    const source: QuestionSource = 'self-test';
+    const correctOption = normalizeCorrectOption(meta.correctOption || inlineAnswer || 'A');
 
     const id =
       meta.id ||
-      `${subjectId.toUpperCase().replace(/-/g, '')}-CH0${chapterId}-${source === 'self-test' ? 'ST' : source === 'apq' ? 'APQ' : 'PS'}-${String(Date.now()).slice(-3)}${idx}`;
+      `${subjectId.toUpperCase().replace(/-/g, '')}-CH${String(chapterId).padStart(2, '0')}-${String(idx + 1).padStart(3, '0')}`;
 
     const options = VALID_OPTIONS.map((optId) => {
       const found = matchedOptions.find((o) => o.id === optId);
@@ -203,37 +206,35 @@ export function parseCsvQuestionBank(rawCsv: string): ParseResult {
 
   for (let i = 1; i < lines.length; i++) {
     const cols = splitCsvRow(lines[i]);
-    if (cols.length < 11) {
-      errors.push(`Row ${i + 1}: Expected 11 columns (id,subjectId,chapterId,chapterName,source,questionText,optionA,optionB,optionC,optionD,correctOption), got ${cols.length}.`);
+    if (cols.length < 10) {
+      errors.push(
+        `Row ${i + 1}: Expected 10 columns (id,subjectId,chapterId,chapterName,questionText,optionA,optionB,optionC,optionD,correctOption), got ${cols.length}.`
+      );
       continue;
     }
 
-    const [
-      id,
-      subjectRaw,
-      chapterIdRaw,
-      chapterName,
-      sourceRaw,
-      questionText,
-      optA,
-      optB,
-      optC,
-      optD,
-      correctRaw,
-    ] = cols;
+    const hasLegacySourceCol = cols.length >= 11;
+    const id = cols[0];
+    const subjectRaw = cols[1];
+    const chapterIdRaw = cols[2];
+    const chapterName = cols[3];
+    const questionText = hasLegacySourceCol ? cols[5] : cols[4];
+    const optA = hasLegacySourceCol ? cols[6] : cols[5];
+    const optB = hasLegacySourceCol ? cols[7] : cols[6];
+    const optC = hasLegacySourceCol ? cols[8] : cols[7];
+    const optD = hasLegacySourceCol ? cols[9] : cols[8];
+    const correctRaw = hasLegacySourceCol ? cols[10] : cols[9];
 
     const subjectId = (VALID_SUBJECTS.includes(subjectRaw as SubjectId) ? subjectRaw : 'prc-1') as SubjectId;
-    const source = (VALID_SOURCES.includes(sourceRaw as QuestionSource) ? sourceRaw : 'self-test') as QuestionSource;
-    const correctOption = (VALID_OPTIONS.includes(correctRaw?.toUpperCase() as OptionId)
-      ? correctRaw.toUpperCase()
-      : 'A') as OptionId;
+    const chapterId = Number(chapterIdRaw) || 1;
+    const correctOption = normalizeCorrectOption(correctRaw);
 
     questions.push({
       id: id || `CSV-Q-${i}`,
       subjectId,
-      chapterId: Number(chapterIdRaw) || 1,
-      chapterName: chapterName || 'General Chapter',
-      source,
+      chapterId,
+      chapterName: chapterName || `Chapter ${chapterId}`,
+      source: 'self-test',
       questionText,
       options: [
         { id: 'A', text: optA },
@@ -266,18 +267,20 @@ export function parseJsonQuestionBank(rawJson: string): ParseResult {
         return;
       }
 
+      const chapterId = Number(item.chapterId) || 1;
+
       questions.push({
         id: String(item.id || `JSON-Q-${idx + 1}`),
         subjectId: VALID_SUBJECTS.includes(item.subjectId) ? item.subjectId : 'prc-1',
-        chapterId: Number(item.chapterId) || 1,
-        chapterName: String(item.chapterName || 'Chapter 1'),
+        chapterId,
+        chapterName: String(item.chapterName || `Chapter ${chapterId}`),
         source: VALID_SOURCES.includes(item.source) ? item.source : 'self-test',
         questionText: String(item.questionText),
         options: item.options.slice(0, 4).map((o: { id?: string; text?: string }, oIdx: number) => ({
           id: VALID_OPTIONS[oIdx],
           text: String(o?.text ?? ''),
         })),
-        correctOption: VALID_OPTIONS.includes(item.correctOption) ? item.correctOption : 'A',
+        correctOption: normalizeCorrectOption(item.correctOption),
       });
     });
   } catch (err) {

@@ -19,7 +19,12 @@ h1, h2, h3, h4, .font-display {
   letter-spacing: -0.03em;
 }
 
-.font-mono {
+.caxis-logo {
+  font-family: 'Syne', sans-serif !important;
+  font-weight: 800 !important;
+}
+
+.font-mono, .font-mono * {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace !important;
   font-variant-numeric: tabular-nums;
 }
@@ -34,13 +39,14 @@ h1, h2, h3, h4, .font-display {
   margin-bottom: 0;
 }
 
-.rich-markdown ul,
 .rich-markdown ol {
-  margin: 0.5rem 0 0.75rem 1.25rem;
+  list-style-type: decimal;
+  padding-left: 1.5rem;
 }
 
-.rich-markdown li {
-  margin-bottom: 0.25rem;
+.rich-markdown ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
 }
 
 .katex-display {
@@ -49,3 +55,172 @@ h1, h2, h3, h4, .font-display {
   overflow-y: hidden;
   padding: 0.35rem 0;
 }
+
+/* Ultra-sleek custom scrollbar across the entire site */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(161, 161, 170, 0.25) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(161, 161, 170, 0.25);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(161, 161, 170, 0.45);
+}
+
+/* Hide scrollbar completely on horizontal question tile strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Shimmering Skeleton Animation */
+@keyframes caxis-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: caxis-shimmer 1.6s infinite linear;
+}
+
+/* Smooth Page / Tab Entrance Animation (200ms) */
+@keyframes caxis-view-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-view-enter {
+  animation: caxis-view-enter 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Crisp 150ms Exam Question-to-Question Cross-Fade + Micro-Slide */
+@keyframes caxis-question-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-question-enter {
+  animation: caxis-question-enter 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Tactile Press Feedback on Interactive Buttons */
+button:not(:disabled) {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 150ms;
+}
+button:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+/* Slow-Drifting Aurora / Mesh Orbs (18s - 25s infinite loops) */
+@keyframes floatOrb {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate3d(42px, -28px, 0) scale(1.08) rotate(6deg);
+  }
+  66% {
+    transform: translate3d(-32px, 24px, 0) scale(0.94) rotate(-5deg);
+  }
+}
+
+@keyframes floatOrbReverse {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  35% {
+    transform: translate3d(-46px, 32px, 0) scale(1.06) rotate(-8deg);
+  }
+  70% {
+    transform: translate3d(34px, -22px, 0) scale(0.95) rotate(7deg);
+  }
+}
+
+@keyframes floatAxisGeo {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(14px, -18px, 0) rotate(4deg);
+  }
+}
+
+@keyframes spinAxisSlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-orb-1 {
+  animation: floatOrb 19s ease-in-out infinite;
+}
+
+.animate-orb-2 {
+  animation: floatOrbReverse 23s ease-in-out infinite;
+}
+
+.animate-orb-3 {
+  animation: floatOrb 25s ease-in-out infinite reverse;
+}
+
+.animate-axis-geo {
+  animation: floatAxisGeo 16s ease-in-out infinite;
+}
+
+.animate-axis-geo-slow {
+  animation: floatAxisGeo 22s ease-in-out infinite reverse;
+}
+
+.animate-spin-axis-slow {
+  animation: spinAxisSlow 48s linear infinite;
+}
+
+/* Architectural Coordinate Axis Grid Pattern */
+.caxis-coord-grid {
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+}
+
+.dark .caxis-coord-grid {
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+
+

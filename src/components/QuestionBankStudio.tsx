@@ -8,13 +8,19 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
-import { Question, QuestionSource, SubjectId } from '../types';
-import { SOURCE_LABELS, SUBJECTS } from '../data/subjects';
+import {
+  isMultiSelectQuestion,
+  parseOptionList,
+  Question,
+  SubjectId,
+} from '../types';
+import { SUBJECTS } from '../data/subjects';
 import {
   parseCsvQuestionBank,
   parseJsonQuestionBank,
   parseMarkdownQuestionBank,
   SAMPLE_CSV_TEMPLATE,
+  SAMPLE_JSON_TEMPLATE,
   SAMPLE_MARKDOWN_TEMPLATE,
 } from '../utils/importParser';
 import { RichContent } from './RichContent';
@@ -38,14 +44,13 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
   const [activeTab, setActiveTab] = useState<StudioTab>('import');
 
   const [browseSubject, setBrowseSubject] = useState<SubjectId>('prc-1');
-  const [browseSource, setBrowseSource] = useState<QuestionSource | 'all'>('all');
+  const [browseChapter, setBrowseChapter] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [format, setFormat] = useState<ImportFormat>('markdown');
+  const [format, setFormat] = useState<ImportFormat>('json');
   const [defaultSubjectId, setDefaultSubjectId] = useState<SubjectId>('prc-1');
   const [defaultChapterId, setDefaultChapterId] = useState<number>(1);
-  const [defaultSource, setDefaultSource] = useState<QuestionSource>('self-test');
-  const [rawInput, setRawInput] = useState<string>(SAMPLE_MARKDOWN_TEMPLATE);
+  const [rawInput, setRawInput] = useState<string>(SAMPLE_JSON_TEMPLATE);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
 
   const selectedSubjectMeta = useMemo(
@@ -53,9 +58,18 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
     [defaultSubjectId]
   );
 
+  const browseSubjectMeta = useMemo(
+    () => SUBJECTS.find((s) => s.id === browseSubject) || SUBJECTS[0],
+    [browseSubject]
+  );
+
   const selectedChapterName = useMemo(() => {
-    const found = selectedSubjectMeta.chapters.find((c) => c.id === defaultChapterId);
-    return found ? found.name : selectedSubjectMeta.chapters[0].name;
+    const found =
+      selectedSubjectMeta.chapters.find((c) => c.id === defaultChapterId) ||
+      selectedSubjectMeta.chapters[0];
+    return found.name.toLowerCase().startsWith('chapter')
+      ? found.name
+      : `Chapter ${found.id}: ${found.name}`;
   }, [selectedSubjectMeta, defaultChapterId]);
 
   const parseOutput = useMemo(() => {
@@ -65,14 +79,13 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
         subjectId: defaultSubjectId,
         chapterId: defaultChapterId,
         chapterName: selectedChapterName,
-        source: defaultSource,
       });
     }
     if (format === 'csv') {
       return parseCsvQuestionBank(rawInput);
     }
     return parseJsonQuestionBank(rawInput);
-  }, [rawInput, format, defaultSubjectId, defaultChapterId, selectedChapterName, defaultSource]);
+  }, [rawInput, format, defaultSubjectId, defaultChapterId, selectedChapterName]);
 
   const handleLoadTemplate = (targetFormat: ImportFormat) => {
     setFormat(targetFormat);
@@ -82,30 +95,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
     } else if (targetFormat === 'csv') {
       setRawInput(SAMPLE_CSV_TEMPLATE);
     } else {
-      setRawInput(
-        JSON.stringify(
-          [
-            {
-              id: 'PRC1-CH01-ST-105',
-              subjectId: 'prc-1',
-              chapterId: 1,
-              chapterName: 'Accounting Fundamentals & Double Entry',
-              source: 'self-test',
-              questionText:
-                'Which financial statement reports an entity’s financial position at a specific point in time using $\\text{Assets} = \\text{Equity} + \\text{Liabilities}$?',
-              options: [
-                { id: 'A', text: 'Statement of Financial Position' },
-                { id: 'B', text: 'Statement of Profit or Loss' },
-                { id: 'C', text: 'Statement of Cash Flows' },
-                { id: 'D', text: 'Trial Balance Schedule' },
-              ],
-              correctOption: 'A',
-            },
-          ],
-          null,
-          2
-        )
-      );
+      setRawInput(SAMPLE_JSON_TEMPLATE);
     }
   };
 
@@ -143,7 +133,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
   const filteredBrowseQuestions = useMemo(() => {
     const list = allQuestionsBySubject[browseSubject] || [];
     return list.filter((q) => {
-      if (browseSource !== 'all' && q.source !== browseSource) return false;
+      if (browseChapter !== 'all' && q.chapterId !== browseChapter) return false;
       if (searchQuery.trim()) {
         const needle = searchQuery.toLowerCase();
         return (
@@ -154,7 +144,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
       }
       return true;
     });
-  }, [allQuestionsBySubject, browseSubject, browseSource, searchQuery]);
+  }, [allQuestionsBySubject, browseSubject, browseChapter, searchQuery]);
 
   const customIds = useMemo(() => new Set(customQuestions.map((q) => q.id)), [customQuestions]);
 
@@ -211,7 +201,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
               </div>
 
               <div className="flex items-center gap-1 rounded-lg border border-black/[0.06] bg-zinc-100 p-1 dark:border-white/[0.06] dark:bg-zinc-900">
-                {(['markdown', 'json', 'csv'] as ImportFormat[]).map((fmt) => (
+                {(['json', 'markdown', 'csv'] as ImportFormat[]).map((fmt) => (
                   <button
                     key={fmt}
                     type="button"
@@ -228,7 +218,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">
                   Target Subject
@@ -260,24 +250,9 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
                 >
                   {selectedSubjectMeta.chapters.map((c) => (
                     <option key={c.id} value={c.id}>
-                      Ch {c.id}: {c.name}
+                      Chapter {c.id}: {c.name}
                     </option>
                   ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Default Source
-                </label>
-                <select
-                  value={defaultSource}
-                  onChange={(e) => setDefaultSource(e.target.value as QuestionSource)}
-                  className="w-full rounded-lg border border-black/[0.08] bg-[#FAFAFA] px-3 py-2 text-xs text-[#09090B] dark:border-white/[0.07] dark:bg-[#09090B] dark:text-white"
-                >
-                  <option value="self-test">ICAP Self-Test</option>
-                  <option value="apq">ICAP APQ</option>
-                  <option value="practice-set">Practice Set</option>
                 </select>
               </div>
             </div>
@@ -290,7 +265,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
               }}
               rows={15}
               spellCheck={false}
-              placeholder="Paste Markdown, JSON, or CSV question bank content here..."
+              placeholder="Paste JSON, Markdown, or CSV question bank content here..."
               className="w-full rounded-lg border border-black/[0.08] bg-[#FAFAFA] p-4 font-mono text-xs leading-relaxed text-[#09090B] focus:border-zinc-900 focus:outline-none dark:border-white/[0.07] dark:bg-[#09090B] dark:text-white dark:focus:border-white"
             />
 
@@ -370,9 +345,7 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
                       <span>·</span>
                       <span>{q.subjectId}</span>
                       <span>·</span>
-                      <span>Ch {q.chapterId}</span>
-                      <span>·</span>
-                      <span>{q.source}</span>
+                      <span>{q.chapterName}</span>
                       <span>·</span>
                       <span className="font-medium text-[#09090B] dark:text-white">
                         Correct: {q.correctOption}
@@ -384,19 +357,22 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {q.options.map((opt) => (
-                        <div
-                          key={opt.id}
-                          className={`rounded-lg border px-3 py-2 text-xs ${
-                            opt.id === q.correctOption
-                              ? 'border-zinc-900 bg-zinc-100 font-medium text-[#09090B] dark:border-white dark:bg-zinc-800 dark:text-white'
-                              : 'border-black/[0.08] bg-white text-zinc-700 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-300'
-                          }`}
-                        >
-                          <span className="font-semibold mr-1.5">{opt.id}.</span>
-                          <span>{opt.text}</span>
-                        </div>
-                      ))}
+                      {q.options.map((opt) => {
+                        const isOptCorrect = parseOptionList(q.correctOption).includes(opt.id);
+                        return (
+                          <div
+                            key={opt.id}
+                            className={`rounded-lg border px-3 py-2 text-xs ${
+                              isOptCorrect
+                                ? 'border-zinc-900 bg-zinc-100 font-medium text-[#09090B] dark:border-white dark:bg-zinc-800 dark:text-white'
+                                : 'border-black/[0.08] bg-white text-zinc-700 dark:border-white/[0.07] dark:bg-[#121215] dark:text-zinc-300'
+                            }`}
+                          >
+                            <span className="font-semibold mr-1.5">{opt.id}.</span>
+                            <span>{opt.text}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -433,7 +409,10 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setBrowseSubject(s.id)}
+                  onClick={() => {
+                    setBrowseSubject(s.id);
+                    setBrowseChapter('all');
+                  }}
                   className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                     browseSubject === s.id
                       ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
@@ -447,14 +426,18 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
 
             <div className="flex flex-wrap items-center gap-2">
               <select
-                value={browseSource}
-                onChange={(e) => setBrowseSource(e.target.value as QuestionSource | 'all')}
+                value={browseChapter}
+                onChange={(e) =>
+                  setBrowseChapter(e.target.value === 'all' ? 'all' : Number(e.target.value))
+                }
                 className="rounded-lg border border-black/[0.08] bg-[#FAFAFA] px-3 py-1.5 text-xs text-[#09090B] dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-200"
               >
-                <option value="all">All Sources</option>
-                <option value="self-test">ICAP Self-Test</option>
-                <option value="apq">ICAP APQ</option>
-                <option value="practice-set">Practice Set</option>
+                <option value="all">All Chapters</option>
+                {browseSubjectMeta.chapters.map((ch) => (
+                  <option key={ch.id} value={ch.id}>
+                    Chapter {ch.id}: {ch.name}
+                  </option>
+                ))}
               </select>
 
               <div className="relative">
@@ -473,10 +456,12 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
           <div className="space-y-4">
             {filteredBrowseQuestions.map((q) => {
               const isCustom = customIds.has(q.id);
+              const correctList = parseOptionList(q.correctOption);
+              const isMulti = isMultiSelectQuestion(q.correctOption);
               return (
                 <div
                   key={q.id}
-                  className="rounded-xl border border-black/[0.08] bg-white p-6 dark:border-white/[0.07] dark:bg-[#121215] space-y-4"
+                  className="rounded-xl border border-black/[0.08] bg-white/80 p-6 backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121215]/75 space-y-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3 text-xs text-zinc-500 dark:border-white/[0.06] dark:text-zinc-400">
                     <div className="flex flex-wrap items-center gap-2">
@@ -484,13 +469,15 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
                         {q.id}
                       </span>
                       <span>·</span>
-                      <span>
-                        Ch {q.chapterId}: {q.chapterName}
-                      </span>
-                      <span>·</span>
-                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                        {SOURCE_LABELS[q.source].label}
-                      </span>
+                      <span>{q.chapterName}</span>
+                      {isMulti && (
+                        <>
+                          <span>·</span>
+                          <span className="rounded-md border border-[#6366F1]/40 bg-[#6366F1]/10 px-2 py-0.5 text-[11px] font-medium text-[#6366F1] dark:border-[#6366F1]/50 dark:bg-[#6366F1]/15 dark:text-indigo-300">
+                            Select all that apply ({q.correctOption})
+                          </span>
+                        </>
+                      )}
                       {isCustom && (
                         <>
                           <span>·</span>
@@ -518,33 +505,44 @@ export const QuestionBankStudio: React.FC<QuestionBankStudioProps> = ({
                   </div>
 
                   <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    {q.options.map((opt) => (
-                      <div
-                        key={opt.id}
-                        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-xs ${
-                          opt.id === q.correctOption
-                            ? 'border-zinc-900 bg-zinc-100/80 font-medium text-[#09090B] dark:border-white dark:bg-zinc-800/80 dark:text-white'
-                            : 'border-black/[0.08] bg-[#FAFAFA] text-zinc-700 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-300'
-                        }`}
-                      >
-                        <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-[11px] font-semibold ${
-                            opt.id === q.correctOption
-                              ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
-                              : 'bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
+                    {q.options.map((opt) => {
+                      const isOptCorrect = correctList.includes(opt.id);
+                      return (
+                        <div
+                          key={opt.id}
+                          className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-xs ${
+                            isOptCorrect
+                              ? 'border-zinc-900 bg-zinc-100/80 font-medium text-[#09090B] dark:border-white dark:bg-zinc-800/80 dark:text-white'
+                              : 'border-black/[0.08] bg-[#FAFAFA] text-zinc-700 dark:border-white/[0.07] dark:bg-[#09090B] dark:text-zinc-300'
                           }`}
                         >
-                          {opt.id}
-                        </span>
-                        <div className="flex-1">
-                          <RichContent content={opt.text} />
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-[11px] font-semibold ${
+                              isOptCorrect
+                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+                                : 'bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
+                            }`}
+                          >
+                            {opt.id}
+                          </span>
+                          <div className="flex-1">
+                            <RichContent content={opt.text} />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
+
+            {filteredBrowseQuestions.length === 0 && (
+              <div className="rounded-xl border border-dashed border-black/[0.08] bg-white p-10 text-center dark:border-white/[0.08] dark:bg-[#121215]">
+                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  No questions loaded in this subject yet. Switch to "Import Markdown / JSON / CSV" to add questions.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

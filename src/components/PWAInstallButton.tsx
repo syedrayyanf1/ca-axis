@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Smartphone, WifiOff, X } from 'lucide-react';
+import { Download, WifiOff, X } from 'lucide-react';
+import { CAxisLogo } from './CAxisLogo';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -64,6 +65,18 @@ export const PWAInstallButton: React.FC = () => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [showGuideModal, setShowGuideModal] = useState(false);
 
+  useEffect(() => {
+    const handleOpenInstall = async () => {
+      if (isInstallable) {
+        await install();
+      } else {
+        setShowGuideModal(true);
+      }
+    };
+    window.addEventListener('caxis:open-pwa-install', handleOpenInstall);
+    return () => window.removeEventListener('caxis:open-pwa-install', handleOpenInstall);
+  }, [isInstallable, install]);
+
   if (isInstalled) {
     return null;
   }
@@ -91,9 +104,7 @@ export const PWAInstallButton: React.FC = () => {
           <div className="w-full max-w-md rounded-xl border border-black/[0.08] bg-white p-6 shadow-xl dark:border-white/[0.07] dark:bg-[#121215]">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-black/[0.08] bg-zinc-100 text-zinc-900 dark:border-white/[0.07] dark:bg-zinc-800 dark:text-white">
-                  <Smartphone className="h-5 w-5" />
-                </div>
+                <CAxisLogo containerClassName="h-10 w-10" svgClassName="h-6 w-6" />
                 <div>
                   <h3 className="font-display text-base font-semibold text-[#09090B] dark:text-[#FAFAFA]">
                     Install CAxis
